@@ -1,0 +1,4 @@
+# Vendored and generated test vectors: byte-exact (their SHA-256s are
+# checked by TestTestdataIntegrity) and collapsed in diffs.
+ff1/testdata/** -text linguist-generated=true
+ff1/testdata/**/*.md text linguist-generated=false

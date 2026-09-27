@@ -1,0 +1,1229 @@
+{
+ "description": "FF1 test vectors extracted verbatim from other FPE libraries' test suites by tools/extract_vectors/extract.py. expect=match: encrypt(pt)=ct and decrypt(ct)=pt; expect=roundtrip: the source only checks decrypt(encrypt(pt))=pt; expect=error: the vector must be rejected with the named sentinel error (vectors that violate radix^n >= 1000000 are reclassified as ErrDomainTooSmall).",
+ "sources": [
+  {
+   "name": "bcgit/bc-java",
+   "url": "https://raw.githubusercontent.com/bcgit/bc-java/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+   "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+   "sha256": "a772ea2bdeba1692b05e85d24b5dc15f416a780e3f87b6f7feac9cb3c93aab3c",
+   "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+  },
+  {
+   "name": "str4d/fpe",
+   "url": "https://raw.githubusercontent.com/str4d/fpe/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+   "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+   "sha256": "4c953214bdea3f89989c892497d1575c92cf1638054dc68abcac0ff4e59b2be1",
+   "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+  },
+  {
+   "name": "capitalone/fpe",
+   "url": "https://raw.githubusercontent.com/capitalone/fpe/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+   "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+   "sha256": "a3dfbbe0f2d2aa00a87a6c874bb1a85b3800305a7bf53fba92a261662ec7ac6b",
+   "license": "Apache-2.0"
+  },
+  {
+   "name": "ubiqsecurity/ubiq-fpe-go",
+   "url": "https://raw.githubusercontent.com/ubiqsecurity/ubiq-fpe-go/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+   "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+   "sha256": "d11440de4702a3bb77a8eff27427250f4f49f822e65b85251f850e5cc9076902",
+   "license": "MIT"
+  }
+ ],
+ "vectors": [
+  {
+   "name": "bc/ff1Samples[0]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2433477484",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[1]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 1, 2, 4, 2, 0, 0, 7, 7, 3],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6124200773",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[2]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [10, 9, 29, 31, 4, 0, 22, 21, 21, 9, 20, 13, 30, 5, 0, 9, 14, 30, 22],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "a9tv40mll9kdu509eum",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[3]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 8, 3, 0, 6, 6, 8, 1, 3, 2],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2830668132",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[4]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 9, 6, 6, 5, 5, 5, 4, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2496655549",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[5]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 11, 19, 3, 20, 31, 3, 5, 19, 27, 10, 32, 33, 31, 3, 2, 34, 28, 27],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "xbj3kv35jrawxv32ysr",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[6]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 6, 5, 7, 6, 6, 7, 0, 0, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6657667009",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[7]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [1, 0, 0, 1, 6, 2, 3, 4, 6, 3],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "1001623463",
+   "expect": "match"
+  },
+  {
+   "name": "bc/ff1Samples[8]",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "ff1Samples",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "xs8a0azh2avyalyzuwd",
+   "expect": "match"
+  },
+  {
+   "name": "bc/testFF1w",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testFF1w",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6",
+   "radix": 1024,
+   "tweak": "39383736353433323130",
+   "pt": [807, 849, 33, 533],
+   "ct": [551, 504, 535, 522],
+   "expect": "match",
+   "note": "numerals encoded as 16-bit big-endian in the BC test"
+  },
+  {
+   "name": "bc/testFF1w/out-of-radix",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testFF1w (outPt)",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6",
+   "radix": 1024,
+   "tweak": "39383736353433323130",
+   "pt": [807, 3921, 33, 533],
+   "expect": "error",
+   "error": "ErrInvalidNumeral"
+  },
+  {
+   "name": "bc/testFF1Rounding",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testFF1Rounding",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "000102030405060708090A0B0C0D0E0F",
+   "radix": 256,
+   "tweak": "0001020304050607",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56],
+   "ct": [220, 24, 190, 248, 183, 210, 58, 167, 125, 29, 175, 122, 80, 194, 37, 60, 75, 172, 183, 114, 18, 159, 112, 128, 94, 205, 65, 55, 117, 188, 59, 223, 121, 39, 206, 112, 244, 85, 218, 207, 79, 223, 97, 182, 26, 199, 58, 92, 144, 253, 61, 23, 89, 220, 160, 191, 39],
+   "expect": "match"
+  },
+  {
+   "name": "bc/testFF1/outside-radix",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testFF1 (input data outside of radix)",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6",
+   "radix": 24,
+   "tweak": "39383736353433323130",
+   "pt": [3, 39, 3, 81, 0, 33, 2, 21],
+   "expect": "error",
+   "error": "ErrInvalidNumeral"
+  },
+  {
+   "name": "bc/testFF1/too-short",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testFF1 (input too short)",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "EF4359D8D580AA4F7F036D6F04FC6A942B7E151628AED2A6",
+   "radix": 24,
+   "tweak": "39383736353433323130",
+   "pt": [1],
+   "expect": "error",
+   "error": "ErrDomainTooSmall",
+   "note": "violates radix^n >= 1000000; must be rejected"
+  },
+  {
+   "name": "bc/testFF1Bounds/ABCDEFGHI",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testFF1Bounds",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "339BB5B1F2D44BAABF87CA1B7380CDC8",
+   "radix": 9,
+   "tweak": "3F096DE35BFA31",
+   "pt": [1, 2, 3],
+   "alphabet": "ABCDEFGHI",
+   "expect": "error",
+   "error": "ErrDomainTooSmall",
+   "note": "violates radix^n >= 1000000; must be rejected"
+  },
+  {
+   "name": "bc/testFF1Bounds/ABCD",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testFF1Bounds",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "339BB5B1F2D44BAABF87CA1B7380CDC8",
+   "radix": 4,
+   "tweak": "3F096DE35BFA31",
+   "pt": [1, 2, 3],
+   "alphabet": "ABCD",
+   "expect": "error",
+   "error": "ErrDomainTooSmall",
+   "note": "violates radix^n >= 1000000; must be rejected"
+  },
+  {
+   "name": "bc/testUtility",
+   "provenance": {
+    "source_url": "https://github.com/bcgit/bc-java/blob/6d7d611b9dcb20c59b2172975ba2a863f17705dc/core/src/test/java/org/bouncycastle/crypto/test/SP80038GTest.java",
+    "commit": "6d7d611b9dcb20c59b2172975ba2a863f17705dc",
+    "locator": "testUtility",
+    "license": "MIT (Bouncy Castle licence); test data used for interoperability testing"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6],
+   "alphabet": "0123456789",
+   "pt_str": "01234567890123456",
+   "expect": "roundtrip",
+   "note": "BC asserts only decrypt(encrypt(x)) == x"
+  },
+  {
+   "name": "fpe-rs/01",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #1",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/02",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #2",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 1, 2, 4, 2, 0, 0, 7, 7, 3],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/03",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #3",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [10, 9, 29, 31, 4, 0, 22, 21, 21, 9, 20, 13, 30, 5, 0, 9, 14, 30, 22],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/04",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #4",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 8, 3, 0, 6, 6, 8, 1, 3, 2],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/05",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #5",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 9, 6, 6, 5, 5, 5, 4, 9],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/06",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #6",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 11, 19, 3, 20, 31, 3, 5, 19, 27, 10, 32, 33, 31, 3, 2, 34, 28, 27],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/07",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #7",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 6, 5, 7, 6, 6, 7, 0, 0, 9],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/08",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #8",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [1, 0, 0, 1, 6, 2, 3, 4, 6, 3],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/09",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #9",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13],
+   "expect": "match",
+   "note": "fpe crate comment: From https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Standards-and-Guidelines/documents/examples/FF1samples.pdf"
+  },
+  {
+   "name": "fpe-rs/10",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #10",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 36,
+   "tweak": "",
+   "pt": [33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21],
+   "ct": [21, 32, 30, 21, 18, 11, 15, 25, 1, 19, 30, 3, 20, 28, 35, 29, 30, 22, 26, 24, 22, 32, 14, 23, 25, 31, 7, 13, 30, 34, 9, 26, 7, 25, 16, 7, 35, 15, 3, 14, 16, 3, 27, 19, 21, 15, 34, 4, 6, 16, 22, 16, 20, 26, 19, 15, 32, 31, 27, 24, 22, 15, 19, 19, 20, 29, 22, 11, 14, 34, 8, 22, 14, 26, 20, 9, 35, 20, 12, 22, 16, 31, 20, 31, 4, 28, 9, 21, 21, 5, 12, 29, 24, 35, 22, 14, 1, 17, 15, 1, 5, 32, 7, 33, 24, 6, 35, 28, 34, 21, 26, 12, 27, 0, 23, 11, 33, 9, 19, 11, 15, 1, 0, 30, 22, 35, 24, 20],
+   "expect": "match",
+   "note": "fpe crate comment: From https://github.com/capitalone/fpe/blob/master/ff1/ff1_test.go"
+  },
+  {
+   "name": "fpe-rs/11",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #11",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 2,
+   "tweak": "",
+   "pt": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+   "ct": [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1],
+   "expect": "match",
+   "note": "fpe crate comment: From https://github.com/zcash-hackworks/zcash-test-vectors/blob/master/ff1.py"
+  },
+  {
+   "name": "fpe-rs/12",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #12",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 2,
+   "tweak": "",
+   "pt": [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1],
+   "ct": [1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0],
+   "expect": "match",
+   "note": "fpe crate comment: From https://github.com/zcash-hackworks/zcash-test-vectors/blob/master/ff1.py"
+  },
+  {
+   "name": "fpe-rs/13",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #13",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 2,
+   "tweak": "",
+   "pt": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+   "ct": [0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0],
+   "expect": "match",
+   "note": "fpe crate comment: From https://github.com/zcash-hackworks/zcash-test-vectors/blob/master/ff1.py"
+  },
+  {
+   "name": "fpe-rs/14",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #14",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 2,
+   "tweak": "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F505152535455565758595A5B5C5D5E5F606162636465666768696A6B6C6D6E6F707172737475767778797A7B7C7D7E7F808182838485868788898A8B8C8D8E8F909192939495969798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAEAFB0B1B2B3B4B5B6B7B8B9BABBBCBDBEBFC0C1C2C3C4C5C6C7C8C9CACBCCCDCECFD0D1D2D3D4D5D6D7D8D9DADBDCDDDEDFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEFF0F1F2F3F4F5F6F7F8F9FAFBFCFDFE",
+   "pt": [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+   "ct": [0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1],
+   "expect": "match",
+   "note": "fpe crate comment: From https://github.com/zcash-hackworks/zcash-test-vectors/blob/master/ff1.py"
+  },
+  {
+   "name": "fpe-rs/15",
+   "provenance": {
+    "source_url": "https://github.com/str4d/fpe/blob/913e533c9345d5c8e11aac42318fc5743d6f58e9/src/ff1/test_vectors.rs",
+    "commit": "913e533c9345d5c8e11aac42318fc5743d6f58e9",
+    "locator": "get() entry #15",
+    "license": "MIT OR Apache-2.0 (fpe crate 0.6.1)"
+   },
+   "key": "0000000000000000000000000000000000000000000000000000000000000000",
+   "radix": 2,
+   "tweak": "",
+   "pt": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+   "ct": [1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0],
+   "expect": "match",
+   "note": "fpe crate comment: Specific test cases"
+  },
+  {
+   "name": "capitalone/testVectors[0]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2433477484",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[1]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 1, 2, 4, 2, 0, 0, 7, 7, 3],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6124200773",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[2]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [10, 9, 29, 31, 4, 0, 22, 21, 21, 9, 20, 13, 30, 5, 0, 9, 14, 30, 22],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "a9tv40mll9kdu509eum",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[3]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 8, 3, 0, 6, 6, 8, 1, 3, 2],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2830668132",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[4]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 9, 6, 6, 5, 5, 5, 4, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2496655549",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[5]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 11, 19, 3, 20, 31, 3, 5, 19, 27, 10, 32, 33, 31, 3, 2, 34, 28, 27],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "xbj3kv35jrawxv32ysr",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[6]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 6, 5, 7, 6, 6, 7, 0, 0, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6657667009",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[7]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [1, 0, 0, 1, 6, 2, 3, 4, 6, 3],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "1001623463",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/testVectors[8]",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "testVectors",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "xs8a0azh2avyalyzuwd",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/TestLong",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "TestLong",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 36,
+   "tweak": "",
+   "pt": [33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "xs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyal",
+   "expect": "roundtrip",
+   "note": "capitalone asserts only decrypt(encrypt(x)) == x; the same key/tweak/input is a known-answer vector in fpe-rs/10"
+  },
+  {
+   "name": "capitalone/TestIssue14",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "TestIssue14",
+    "license": "Apache-2.0"
+   },
+   "key": "EF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 2,
+   "tweak": "D8E7920AFA330A73",
+   "pt": [1, 1, 1, 1, 1, 0, 1, 0],
+   "alphabet": "01",
+   "pt_str": "11111010",
+   "expect": "error",
+   "error": "ErrDomainTooSmall",
+   "note": "violates radix^n >= 1000000; must be rejected"
+  },
+  {
+   "name": "capitalone/ExampleCipher_Encrypt",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "ExampleCipher_Encrypt",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2433477484",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/ExampleCipher_Decrypt",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "ExampleCipher_Decrypt",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2433477484",
+   "expect": "match"
+  },
+  {
+   "name": "capitalone/BenchmarkEncryptLong",
+   "provenance": {
+    "source_url": "https://github.com/capitalone/fpe/blob/b7dcc90b924e240eac5af5ff2d4d913fbf9985f0/ff1/ff1_test.go",
+    "commit": "b7dcc90b924e240eac5af5ff2d4d913fbf9985f0",
+    "locator": "BenchmarkEncryptLong",
+    "license": "Apache-2.0"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 36,
+   "tweak": "",
+   "pt": [33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13, 33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "xs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwdxs8a0azh2avyalyzuwd",
+   "expect": "roundtrip",
+   "note": "benchmark input; the source has no expected ciphertext"
+  },
+  {
+   "name": "ubiq/TestFF1NIST1",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST1",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2433477484",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST2",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST2",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 1, 2, 4, 2, 0, 0, 7, 7, 3],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6124200773",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST3",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST3",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [10, 9, 29, 31, 4, 0, 22, 21, 21, 9, 20, 13, 30, 5, 0, 9, 14, 30, 22],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "a9tv40mll9kdu509eum",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST4",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST4",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 8, 3, 0, 6, 6, 8, 1, 3, 2],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2830668132",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST5",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST5",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 9, 6, 6, 5, 5, 5, 4, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2496655549",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST6",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST6",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 11, 19, 3, 20, 31, 3, 5, 19, 27, 10, 32, 33, 31, 3, 2, 34, 28, 27],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "xbj3kv35jrawxv32ysr",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST7",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST7",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 6, 5, 7, 6, 6, 7, 0, 0, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6657667009",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST8",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST8",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "39383736353433323130",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [1, 0, 0, 1, 6, 2, 3, 4, 6, 3],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "1001623463",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1NIST9",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1NIST9",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 36,
+   "tweak": "3737373770717273373737",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+   "ct": [33, 28, 8, 10, 0, 10, 35, 17, 2, 10, 31, 34, 10, 21, 34, 35, 30, 32, 13],
+   "alphabet": "0123456789abcdefghijklmnopqrstuvwxyz",
+   "pt_str": "0123456789abcdefghi",
+   "ct_str": "xs8a0azh2avyalyzuwd",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1Base2",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1Base2",
+    "license": "MIT"
+   },
+   "key": "F4A116D6EE406A53A56CBE0F4AA7B1001CDC0A55CAC963CF5ACE390488B3477A",
+   "radix": 2,
+   "tweak": "FD7F4B9945A3C535ADB4720027116CA0F4987D7F3FDBA9BBC40E75375FEAA63C",
+   "pt": [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1],
+   "ct": [1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1],
+   "alphabet": "01",
+   "pt_str": "00000101011011011101001001010011100111100011001",
+   "ct_str": "10110101001110101101110000011000000011111100111",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1Base2A",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1Base2A",
+    "license": "MIT"
+   },
+   "key": "F4A116D6EE406A53A56CBE0F4AA7B1001CDC0A55CAC963CF5ACE390488B3477A",
+   "radix": 2,
+   "tweak": "FD7F4B9945A3C535ADB4720027116CA0F4987D7F3FDBA9BBC40E75375FEAA63C",
+   "pt": [0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1],
+   "ct": [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1],
+   "alphabet": "01",
+   "pt_str": "000010101100011111010000111001100001011010011110100100110010010000000101000011000000001111110101111100111001001001100100100110101111110000011101010111001111010000010010111110101100001001100011",
+   "ct_str": "111110001101110010010110001010100001101011001010011010111001001101101000011110000110110000001101011110101100001101000011101110110101001111100001011010010000010111001110010011001100001111100101",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1Base2B",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1Base2B",
+    "license": "MIT"
+   },
+   "key": "F4A116D6EE406A53A56CBE0F4AA7B1001CDC0A55CAC963CF5ACE390488B3477A",
+   "radix": 2,
+   "tweak": "FD7F4B9945A3C535ADB4720027116CA0F4987D7F3FDBA9BBC40E75375FEAA63C",
+   "pt": [0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0],
+   "ct": [0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0],
+   "alphabet": "01",
+   "pt_str": "00000111011010010101111110011110001011111000110100000101001010001100001101111000010000101011100100010111011101001010010100101010100011010101010000101111111001111100110100001100011001011010010000110",
+   "ct_str": "00110011001000111100010111110001000110110110010010101101001011101001101010010001111001010100100001110101010101101110110010100110101110111011111010110010101110000001101000101010100011010100111011000",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1Base2C",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1Base2C",
+    "license": "MIT"
+   },
+   "key": "F4A116D6EE406A53A56CBE0F4AA7B1001CDC0A55CAC963CF5ACE390488B3477A",
+   "radix": 2,
+   "tweak": "FD7F4B9945A3C535ADB4720027116CA0F4987D7F3FDBA9BBC40E75375FEAA63C",
+   "pt": [0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0],
+   "ct": [1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0],
+   "alphabet": "01",
+   "pt_str": "00001100010001110001000111100100001111110110000000001010000001111100000111100101110111101100101011001010010010001011100000100100011100010111111000111101010111010110011001000010000101000100000111011001000010000111001010100101111011111100111111101010001111101111101000101111101100101001000010110101011100011011001110101101001100100101101000000111100100110000001111011000110011110000011011101111001110101101111001001111010101011001100011001111001110",
+   "ct_str": "10101101001111110110110001010101110111011010101001110011111101101101000001110010100110110011011101000101010001111101100000110000101110000000110001011000100000111001111011101011100011100010100001010011110100010001001000001101110010110111100010101001000100100000010111100000101000010100011001100011111110011100111110011100111111011001101011100010100110001100111000100000101011111110100011110011101001010110001000011010011011101001101000001100110100",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1Base2D",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1Base2D",
+    "license": "MIT"
+   },
+   "key": "F4A116D6EE406A53A56CBE0F4AA7B1001CDC0A55CAC963CF5ACE390488B3477A",
+   "radix": 2,
+   "tweak": "FD7F4B9945A3C535ADB4720027116CA0F4987D7F3FDBA9BBC40E75375FEAA63C",
+   "pt": [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1],
+   "ct": [0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
+   "alphabet": "01",
+   "pt_str": "0000100001110000110111000100110011101011100100100000011011100101010101010100111000001001001010110110101100010001111111101001100100001110000001101100101000110000001101100100110101101101111011010100010100110101110011101101001000010100110111101111000100001011010011000000000011001010110000110111110010111110001010111000011100010010100111011110010100110101000100101010010100001110010101001100010001111000011110001101011010001010110110010000111001110110101",
+   "ct_str": "0101111000110110000111000111011100110111101000100000100010100110100010001101000101111000100000111000000011110111001001101010100001111100100101100100000000000011100011110010100010000010001001101100011100111110101110000101111010100111100000111000000111011011010101111100110101000110001110110001110011111000111110010000100010000101010110000010010100001111011010110111011111101000100000010111101010000011011110001000000011111010110010100101001000111101110",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1Base2E",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1Base2E",
+    "license": "MIT"
+   },
+   "key": "F4A116D6EE406A53A56CBE0F4AA7B1001CDC0A55CAC963CF5ACE390488B3477A",
+   "radix": 2,
+   "tweak": "FD7F4B9945A3C535ADB4720027116CA0F4987D7F3FDBA9BBC40E75375FEAA63C",
+   "pt": [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1],
+   "ct": [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+   "alphabet": "01",
+   "pt_str": "0000100001110000110111000100110011101011100100100000011011100101010101010100111000001001001010110110101100010001111111101001100100001110000001101100101000110000001101100100110101101101111011010100010100110101110011101101001000010100110111101111000100001011010011000000000011001010110000110111110010111110001010111000011100010010100111011110010100110101000100101010010100001110010101001100010001111000011110001101011010001010110110010000111001110110101000010000111000011011100010011001110101110010010000001101110010101010101010011100000100100101011011010110001000111111110100110010000111000000110110010100011000000110110010011010110110111101101010001010011010111001110110100100001010011011110111100010000101101001100000000001100101011000011011111001011111000101011100001110001001010011101111001010011010100010010101001010000111001010100110001000111100001111000110101101000101011011001000011100111011010100001000011100001101110001001100111010111001001000000110111001010101010101001110000010010010101101101011000100011111111010011001000011100000011011001010001100000011011001001101011011011110110101000101001101011100111011010010000101001101111011110001000010110100110000000000110010101100001101111100101111100010101110000111000100101001110111100101001101010001001010100101000011100101010011000100011110000111100011010110100010101101100100001110011101101010000100001110000110111000100110011101011100100100000011011100101010101010100111000001001001010110110101100010001111111101001100100001110000001101100101000110000001101100100110101101101111011010100010100110101110011101101001000010100110111101111000100001011010011000000000011001010110000110111110010111110001010111000011100010010100111011110010100110101000100101010010100001110010101001100010001111000011110001101011010001010110110010000111001110110101",
+   "ct_str": "0000010100010011101101101111101011010101110011111000100110100110001101001001111110001100001010111011001001101100011110010111111111100011111111111011100000101000000101101100011001110110011011110111011101101111110110000101000011111101100100100101010110111010101111001011000001100000100000110110110111001101010101001111101111010111010111001101101000000101100001000100100001111001001001001000001010010000101000110111010010000010010101000000111111101001011101111111000100101001100110001111001101110001010110011000000000101011001010110110011101100111001110010111011010101110100100111010111000010011010000001001001111110110001110010110111101101000001100101101100010101101010110010001001110010001100110101100011001010010011001100101010001111010100000101010011111010001110110000111101010111111101101001001110001110110111111100101001010110010011000011111110111110000010010110110111100110101000111000011010100100001101001010001110000011110001110101001010110011111100010001011001110110100000001010001010101001000011000001010010001110110001011000010010011111011101001110010100101001000011111100011111111110000110111001101101001111111010011011110101101011111010010101000100011010011111010100101011001100110110101011110110000010110111101001100000001011000010000110111100111110001101011011000010010011111101010001100010010001100111111110011101000111110101001100011010100100110110111010010010001100001101000111000000010000111101010001011111100011111001111000111001110100110010110000101000100001000001100100000100101011001000001011010000000000011100110001001011111001011101010100001101101000111101010111000101001000001100011110000101111100110110100001111001110011111111000100011000010000000110110101011101001010000001011010010101111101100100011110101110101110101010110001110100000000010100011000111011011110100111111111100",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1Base10A",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1Base10A",
+    "license": "MIT"
+   },
+   "key": "F4A116D6EE406A53A56CBE0F4AA7B1001CDC0A55CAC963CF5ACE390488B3477A",
+   "radix": 10,
+   "tweak": "FD7F4B9945A3C535ADB4720027116CA0F4987D7F3FDBA9BBC40E75375FEAA63C",
+   "pt": [0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1],
+   "ct": [3, 5, 5, 3, 4, 9, 4, 0, 8, 9, 9, 1, 6, 6, 5, 6, 5, 4, 1, 1, 8, 4, 4, 7, 8, 9, 0, 8, 0, 8, 7, 0, 4, 9, 7, 3, 5, 5, 4, 4, 9, 1, 2, 6, 7, 4, 2, 9, 7, 3, 4, 9, 6, 6, 4, 7, 9, 6, 6, 0, 6, 6, 2, 0, 1, 8, 8, 7, 3, 0, 7, 5, 3, 0, 5, 9, 0, 0, 2, 8, 4, 4, 1, 2, 8, 2, 3, 4, 2, 5, 5, 6, 2, 5, 8, 7, 1, 5, 4, 6, 0, 4, 4, 8, 5, 4, 3, 9, 5, 2, 0, 9, 9, 6, 2, 9, 2, 6, 7, 8, 4, 7, 2, 4, 1, 2, 8, 5, 6, 0, 7, 1, 3, 5, 1, 2, 2, 4, 8, 8, 0, 8, 6, 8, 7, 2, 1, 1, 1, 4, 9, 7, 4, 4, 5, 9, 8, 1, 9, 5, 4, 1, 2, 7, 1, 2, 9, 4, 0, 4, 6, 8, 1, 6, 3, 7, 7, 4, 0, 9, 6, 6, 2, 8, 3, 5, 0, 6, 2, 0, 9, 5, 1, 4, 1, 3, 7, 1, 1, 8, 0, 3, 9, 5, 0, 5, 1, 8, 5, 9, 4, 6, 1, 7, 3, 7, 3, 3, 5, 1, 5, 4, 4, 3, 9, 3, 8, 5, 6, 3, 7, 3, 4, 5, 0, 3, 2, 0, 0, 8, 7, 5, 2, 3, 2, 6, 2, 0, 2, 2, 3, 8, 3, 9, 4, 5, 6, 4, 8, 1, 2, 7, 3, 7, 2, 0, 6, 2, 4, 7, 8, 2, 3, 1, 1, 4, 8, 0, 3, 8, 4, 7, 1, 8, 4, 4, 0, 1, 4, 8, 7, 1, 1, 3, 2, 7, 9, 4, 4, 2, 1, 5, 9, 2, 6, 8, 8, 4, 2, 9, 3, 6, 0, 3, 8, 8, 6, 3, 2, 5, 3, 8, 6, 2, 2, 0, 0, 7, 3, 2, 5, 7, 0, 9, 0, 2, 3, 1, 1, 4, 4, 8, 9, 6, 2, 0, 5, 0, 2, 8, 5, 8, 6, 6, 1, 3, 6, 9, 3, 3, 1, 7, 2, 2, 3, 8, 5, 3, 4, 5, 6, 3, 0, 8, 0, 5, 5, 5, 7, 7, 2, 6, 6, 5, 7, 3, 0, 1, 1, 0, 3, 7, 3, 1, 4, 7, 6, 8, 9, 1, 9, 3, 9, 3, 5, 6, 5, 4, 0, 6, 2, 5, 1, 9, 0, 8, 6, 1, 2, 2, 3, 8, 3, 1, 2, 0, 2, 0, 1, 8, 8, 6, 9, 0, 5, 9, 5, 2, 3, 5, 9, 7, 9, 9, 5, 3, 0, 3, 2, 9, 0, 0, 7, 4, 1, 2, 1, 0, 7, 9, 4, 2, 8, 7, 2, 1, 4, 5, 7, 0, 7, 1, 7, 5, 6, 4, 1, 6, 5, 7, 2, 7, 2, 8, 0, 2, 9, 1, 7, 7, 7, 4, 6, 8, 1, 0, 9, 0, 0, 3, 0, 7, 0, 2, 0, 2, 5, 9, 5, 3, 7, 7, 6, 5, 4, 1, 0, 2, 0, 1, 9, 2, 9, 9, 6, 3, 0, 8, 6, 9, 8, 2, 3, 0, 7, 8, 3, 7, 1, 8, 6, 5, 0, 9, 3, 6, 4, 2, 3, 6, 9, 5, 6, 5, 1, 1, 9, 9, 9, 3, 5, 0, 1, 4, 7, 3, 2, 3, 7, 2, 1, 0, 1, 0, 3, 3, 2, 8, 5, 7, 8, 4, 7, 7, 7, 4, 3, 8, 6, 0, 6, 7, 6, 4, 4, 2, 3, 3, 7, 0, 3, 9, 8, 9, 8, 4, 0, 3, 2, 3, 1, 0, 9, 1, 3, 8, 1, 3, 4, 0, 7, 2, 9, 7, 3, 2, 4, 1, 9, 0, 3, 1, 5, 6, 1, 1, 1, 8, 2, 6, 9, 7, 6, 1, 6, 0, 8, 1, 2, 6, 0, 0, 1, 8, 5, 1, 2, 9, 2, 5, 7, 0, 0, 0, 1, 4, 6, 8, 2, 4, 5, 7, 4, 3, 4, 8, 2, 9, 1, 1, 2, 7, 5, 9, 5, 7, 2, 5, 5, 9, 4, 8, 9, 2, 5, 0, 1, 6, 1, 9, 6, 3, 4, 5, 0, 8, 1, 2, 8, 4, 8, 8, 7, 3, 1, 8, 9, 2, 3, 5, 2, 9, 8, 7, 2, 0, 7, 1, 5, 4, 5, 3, 8, 0, 4, 3, 2, 7, 5, 8, 6, 5, 2, 0, 6, 7, 2, 0, 4, 0, 7, 4, 3, 1, 7, 0, 1, 9, 8, 6, 5, 7, 9, 4, 9, 8, 5, 7, 5, 7, 6, 4, 6, 2, 5, 6, 8, 2, 4, 0, 5, 7, 9, 3, 4, 3, 8, 1, 1, 6, 4, 8, 6, 3, 1, 5, 3, 2, 9, 9, 0, 4, 9, 2, 4, 7, 3, 4, 9, 9, 3, 6, 2, 4, 1, 9, 2, 1, 7, 5, 5, 3, 8, 9, 0, 7, 7, 2, 8, 0, 0, 5, 5, 4, 6, 0, 0, 6, 7, 7, 9, 8, 3, 6, 3, 4, 7, 7, 5, 1, 2, 8, 1, 1, 5, 8, 5, 1, 4, 8, 6, 2, 2, 5, 6, 3, 5, 2, 5, 2, 6, 4, 8, 1, 7, 1, 8, 0, 6, 4, 1, 2, 2, 5, 6, 4, 5, 8, 0, 3, 6, 7, 2, 1, 7, 9, 5, 6, 2, 3, 7, 4, 6, 4, 3, 5, 8, 1, 0, 3, 1, 9, 6, 5, 3, 8, 8, 7, 5, 2, 9, 1, 2, 8, 3, 6, 9, 0, 1, 5, 5, 4, 2, 9, 8, 5, 8, 2, 9, 7, 2, 5, 3, 8, 9, 3, 8, 9, 8, 2, 7, 9, 0, 6, 0, 6, 7, 6, 6, 2, 5, 0, 0, 1, 6, 1, 8, 1, 0, 8, 2, 7, 5, 7, 1, 4, 2, 1, 9, 1, 7, 1, 4, 9, 1, 3, 7, 1, 1, 1, 3, 9, 5, 6, 7, 7, 3, 7, 6, 2, 8, 4, 4, 9, 4, 1, 0, 3, 4, 9, 4, 7, 4, 7, 2, 0, 2, 6, 5, 9, 1, 3, 4, 1, 2, 5, 2, 3, 3, 9, 0, 3, 4, 1, 3, 6, 6, 2, 7, 9, 9, 8, 2, 5, 3, 2, 3, 3, 8, 1, 7, 6, 0, 6, 2, 5, 0, 0, 2, 4, 8, 4, 1, 2, 3, 0, 4, 6, 3, 0, 6, 7, 5, 3, 3, 5, 6, 7, 0, 8, 9, 9, 3, 5, 6, 0, 3, 7, 5, 6, 3, 0, 1, 5, 6, 5, 8, 2, 0, 3, 6, 9, 0, 7, 9, 9, 2, 7, 7, 0, 0, 7, 5, 8, 8, 0, 5, 9, 4, 8, 7, 7, 2, 3, 2, 1, 7, 6, 3, 2, 6, 5, 6, 2, 8, 8, 7, 1, 3, 4, 9, 9, 0, 3, 2, 0, 4, 2, 4, 9, 1, 6, 2, 5, 1, 3, 2, 8, 1, 4, 0, 2, 2, 5, 0, 0, 8, 7, 8, 3, 4, 3, 9, 3, 2, 5, 9, 9, 8, 7, 9, 2, 5, 7, 8, 4, 6, 7, 8, 4, 4, 0, 4, 1, 1, 9, 0, 0, 5, 9, 8, 6, 1, 4, 7, 3, 2, 5, 8, 8, 2, 4, 3, 2, 5, 2, 5, 2, 9, 9, 1, 2, 9, 3, 7, 6, 3, 1, 8, 6, 6, 6, 5, 9, 8, 8, 0, 7, 4, 4, 1, 5, 8, 5, 2, 4, 5, 7, 1, 6, 2, 5, 7, 1, 8, 1, 0, 3, 6, 8, 5, 3, 1, 4, 0, 5, 3, 2, 8, 7, 3, 0, 8, 1, 2, 0, 4, 1, 0, 8, 2, 3, 2, 4, 9, 1, 5, 1, 5, 9, 9, 9, 1, 0, 7, 2, 6, 3, 8, 3, 3, 5, 9, 2, 5, 5, 5, 9, 2, 5, 3, 9, 9, 4, 6, 3, 7, 9, 8, 6, 1, 1, 8, 3, 0, 3, 4, 4, 5, 8, 4, 9, 0, 7, 4, 4, 3, 0, 2, 0, 6, 7, 0, 4, 9, 2, 3, 6, 6, 6, 7, 0, 2, 0, 1, 4, 1, 7, 6, 3, 6, 1, 0, 6, 5, 1, 8, 5, 1, 7, 6, 8, 9, 5, 5, 0, 0, 9, 7, 3, 2, 5, 1, 7, 3, 3, 6, 4, 0, 0, 6, 5, 0, 8, 3, 8, 4, 0, 8, 7, 6, 4, 7, 1, 6, 4, 2, 3, 8, 2, 9, 2, 2, 5, 8, 0, 1, 7, 2, 0, 5, 8, 0, 1, 4, 4, 3, 3, 3, 8, 1, 3, 8, 1, 6, 6, 0, 4, 2, 2, 2, 6, 7, 6, 5, 0, 7, 1, 8, 3, 3, 4, 1, 5, 5, 8, 0, 0, 5, 3, 0, 8, 7, 4, 2, 5, 0, 5, 1, 7, 0, 4, 0, 6, 4, 7, 8, 5, 1, 7, 2, 3, 7, 1, 1, 5, 9, 2, 3, 4, 5, 7, 9, 9, 2, 4, 4, 2, 0, 3, 4, 3, 2, 9, 9, 1, 5, 1, 2, 4, 6, 5, 1, 6, 2, 7, 7, 3, 2, 6, 0, 0, 7, 9, 3, 2, 4, 9, 2, 7, 3, 7, 3, 3, 7, 9, 4, 0, 8, 8, 8, 0, 7, 4, 1, 6, 4, 5, 4, 4, 1, 4, 7, 4, 7, 2, 7, 1, 9, 9, 4, 7, 9, 6, 6, 0, 9, 6, 7, 0, 5, 2, 1, 9, 8, 6, 5, 0, 3, 8, 5, 1, 0, 5, 1, 5, 5, 3, 3, 6, 9, 2, 9, 2, 8, 8, 4, 4, 9, 3, 5, 6, 4, 3, 7, 4, 5, 2, 6, 2, 1, 4, 8, 9, 7, 9, 9, 6, 5, 1, 0, 4, 5, 8, 5, 7, 3, 4, 3, 9, 6, 6, 9, 5, 1, 9, 8, 8, 5, 8, 2, 6, 1, 5, 4, 2, 6, 1, 0, 7, 0, 8, 1, 1, 5, 5, 0, 0, 7, 7, 8, 4, 9, 4, 2, 2, 0, 3, 3, 0, 6, 3, 4, 9, 4, 3, 5, 4, 3, 6, 8, 7, 5, 6, 5, 8, 4, 2, 3, 4, 5, 7, 8, 1, 9, 7, 8, 5, 7, 3, 6, 0, 2, 3, 5, 9, 5, 5, 3, 8, 9, 0, 5, 9, 6, 5, 5, 9, 1, 4, 7, 7, 8, 2, 6, 8, 9, 9, 6, 1, 2, 7, 5, 6, 9, 0, 2, 0, 3, 4, 3, 8, 7, 7, 0, 6, 3, 4, 2, 2, 7, 1, 5, 7, 3, 7, 9, 2, 6, 8, 1, 9, 8, 7, 7, 5, 1, 0, 9, 3, 7, 2, 3, 1, 4, 7, 4, 4, 6, 0, 3, 2, 4, 6, 5, 8, 4, 6, 9, 9, 8, 9, 2, 1, 4, 2, 3, 4, 3, 4, 6, 3, 9, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0000100001110000110111000100110011101011100100100000011011100101010101010100111000001001001010110110101100010001111111101001100100001110000001101100101000110000001101100100110101101101111011010100010100110101110011101101001000010100110111101111000100001011010011000000000011001010110000110111110010111110001010111000011100010010100111011110010100110101000100101010010100001110010101001100010001111000011110001101011010001010110110010000111001110110101000010000111000011011100010011001110101110010010000001101110010101010101010011100000100100101011011010110001000111111110100110010000111000000110110010100011000000110110010011010110110111101101010001010011010111001110110100100001010011011110111100010000101101001100000000001100101011000011011111001011111000101011100001110001001010011101111001010011010100010010101001010000111001010100110001000111100001111000110101101000101011011001000011100111011010100001000011100001101110001001100111010111001001000000110111001010101010101001110000010010010101101101011000100011111111010011001000011100000011011001010001100000011011001001101011011011110110101000101001101011100111011010010000101001101111011110001000010110100110000000000110010101100001101111100101111100010101110000111000100101001110111100101001101010001001010100101000011100101010011000100011110000111100011010110100010101101100100001110011101101010000100001110000110111000100110011101011100100100000011011100101010101010100111000001001001010110110101100010001111111101001100100001110000001101100101000110000001101100100110101101101111011010100010100110101110011101101001000010100110111101111000100001011010011000000000011001010110000110111110010111110001010111000011100010010100111011110010100110101000100101010010100001110010101001100010001111000011110001101011010001010110110010000111001110110101",
+   "ct_str": "3553494089916656541184478908087049735544912674297349664796606620188730753059002844128234255625871546044854395209962926784724128560713512248808687211149744598195412712940468163774096628350620951413711803950518594617373351544393856373450320087523262022383945648127372062478231148038471844014871132794421592688429360388632538622007325709023114489620502858661369331722385345630805557726657301103731476891939356540625190861223831202018869059523597995303290074121079428721457071756416572728029177746810900307020259537765410201929963086982307837186509364236956511999350147323721010332857847774386067644233703989840323109138134072973241903156111826976160812600185129257000146824574348291127595725594892501619634508128488731892352987207154538043275865206720407431701986579498575764625682405793438116486315329904924734993624192175538907728005546006779836347751281158514862256352526481718064122564580367217956237464358103196538875291283690155429858297253893898279060676625001618108275714219171491371113956773762844941034947472026591341252339034136627998253233817606250024841230463067533567089935603756301565820369079927700758805948772321763265628871349903204249162513281402250087834393259987925784678440411900598614732588243252529912937631866659880744158524571625718103685314053287308120410823249151599910726383359255592539946379861183034458490744302067049236667020141763610651851768955009732517336400650838408764716423829225801720580144333813816604222676507183341558005308742505170406478517237115923457992442034329915124651627732600793249273733794088807416454414747271994796609670521986503851051553369292884493564374526214897996510458573439669519885826154261070811550077849422033063494354368756584234578197857360235955389059655914778268996127569020343877063422715737926819877510937231474460324658469989214234346399",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/TestFF1UTF8",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "TestFF1UTF8",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 33,
+   "tweak": "",
+   "pt": [26, 27, 28, 29, 30, 31, 32],
+   "ct": [30, 15, 24, 30, 9, 4, 27],
+   "alphabet": "abcdefghijklmnopqrstuvwxyzこんにちは世界",
+   "pt_str": "こんにちは世界",
+   "ct_str": "はpyはjeん",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/BenchmarkFF1Encrypt128",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "BenchmarkFF1Encrypt128",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2433477484",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/BenchmarkFF1Encrypt192",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "BenchmarkFF1Encrypt192",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 8, 3, 0, 6, 6, 8, 1, 3, 2],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2830668132",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/BenchmarkFF1Encrypt256",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "BenchmarkFF1Encrypt256",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 6, 5, 7, 6, 6, 7, 0, 0, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6657667009",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/BenchmarkFF1Decrypt128",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "BenchmarkFF1Decrypt128",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3C",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 4, 3, 3, 4, 7, 7, 4, 8, 4],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2433477484",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/BenchmarkFF1Decrypt192",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "BenchmarkFF1Decrypt192",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [2, 8, 3, 0, 6, 6, 8, 1, 3, 2],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "2830668132",
+   "expect": "match"
+  },
+  {
+   "name": "ubiq/BenchmarkFF1Decrypt256",
+   "provenance": {
+    "source_url": "https://github.com/ubiqsecurity/ubiq-fpe-go/blob/f0d5bc065c59a766b5e7f69e6eecd895d2112659/ff1_test.go",
+    "commit": "f0d5bc065c59a766b5e7f69e6eecd895d2112659",
+    "locator": "BenchmarkFF1Decrypt256",
+    "license": "MIT"
+   },
+   "key": "2B7E151628AED2A6ABF7158809CF4F3CEF4359D8D580AA4F7F036D6F04FC6A94",
+   "radix": 10,
+   "tweak": "",
+   "pt": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+   "ct": [6, 6, 5, 7, 6, 6, 7, 0, 0, 9],
+   "alphabet": "0123456789",
+   "pt_str": "0123456789",
+   "ct_str": "6657667009",
+   "expect": "match"
+  }
+ ]
+}
