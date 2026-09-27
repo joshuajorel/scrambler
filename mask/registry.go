@@ -2,16 +2,15 @@ package mask
 
 import "sync"
 
-// Registry binds physical locations to logical policies. It rejects two
-// bindings of the same domain ID and version with differing policy metadata.
-// A Registry is safe for concurrent use.
+// Registry binds physical locations to logical policies. It holds one policy
+// per domain ID and rejects a binding of that domain ID with differing policy
+// metadata, including a different policy version. A Registry is safe for
+// concurrent use.
 type Registry struct {
 	mu        sync.Mutex
-	domains   map[domainVersion]string
+	domains   map[string]string
 	locations map[string]*Binding
 }
-
-type domainVersion struct{ domain, version string }
 
 // Binding is an immutable location handle. Its name never enters the tweak.
 type Binding struct {
@@ -19,7 +18,7 @@ type Binding struct {
 	policy *Policy
 }
 
-// Bind registers a location and checks domain/version consistency.
+// Bind registers a location and checks domain consistency.
 func (r *Registry) Bind(location string, p *Policy) (*Binding, error) {
 	if r == nil || p == nil || p.cipher == nil || location == "" {
 		return nil, ErrInvalidSpec
@@ -27,11 +26,10 @@ func (r *Registry) Bind(location string, p *Policy) (*Binding, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.domains == nil {
-		r.domains = make(map[domainVersion]string)
+		r.domains = make(map[string]string)
 		r.locations = make(map[string]*Binding)
 	}
-	key := domainVersion{p.domainID, p.version}
-	if prior, ok := r.domains[key]; ok && prior != p.fingerprint {
+	if prior, ok := r.domains[p.domainID]; ok && prior != p.fingerprint {
 		return nil, ErrDivergentPolicy
 	}
 	if prior, ok := r.locations[location]; ok {
@@ -42,7 +40,7 @@ func (r *Registry) Bind(location string, p *Policy) (*Binding, error) {
 		return prior, nil
 	}
 	b := &Binding{name: location, policy: p}
-	r.domains[key] = p.fingerprint
+	r.domains[p.domainID] = p.fingerprint
 	r.locations[location] = b
 	return b, nil
 }

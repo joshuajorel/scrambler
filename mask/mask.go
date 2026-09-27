@@ -15,11 +15,10 @@ import (
 )
 
 const (
-	maxWidth      = 256
-	maxInputBytes = 4096
-	maxDomainID   = 64
-	maxVersion    = 32
-	maxContext    = 64
+	maxWidth    = 256
+	maxDomainID = 64
+	maxVersion  = 32
+	maxContext  = 64
 )
 
 var (
@@ -52,20 +51,18 @@ const (
 	PreserveEmpty
 )
 
-// InvalidRule states how malformed present values are handled. The only
-// supported rule in this release is RejectInvalid; there is no pass-through.
-type InvalidRule uint8
-
-const RejectInvalid InvalidRule = 0
-
 // AliasRule controls whether normalization may merge distinct raw inputs.
-// RejectAliases requires the raw input to already be in canonical form; this
-// is the stateless way to rule out collisions across independent processes.
+// RejectAliases, the default, requires the raw input to already be in
+// canonical form; this is the stateless way to rule out collisions across
+// independent processes. AllowAliases is an explicit opt-in to intentional
+// aliasing: a field owner chooses it when a canonicalizer deliberately
+// normalizes different representations of the same logical value (for
+// example zero padding), and those representations then mask alike.
 type AliasRule uint8
 
 const (
-	AllowAliases AliasRule = iota
-	RejectAliases
+	RejectAliases AliasRule = iota
+	AllowAliases
 )
 
 // Canonicalizer must be deterministic and safe for concurrent use. ID must
@@ -85,10 +82,8 @@ type Spec struct {
 	Width         int // Unicode symbols, not bytes
 	Canonicalizer Canonicalizer
 	Empty         EmptyRule
-	Invalid       InvalidRule
 	Aliases       AliasRule
 	Scope         Scope
-	MaxInputBytes int // 0 uses 4*Width; at most 4096
 }
 
 // KeyRef names a caller-managed key and its version. Rotate a key by making
@@ -113,7 +108,6 @@ type Policy struct {
 	empty             EmptyRule
 	aliases           AliasRule
 	width             int
-	maxInputBytes     int
 	canonicalize      func(string) (string, error)
 	cipher            *ff1.Cipher
 	fingerprint       string
@@ -127,15 +121,8 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 		return nil, fmt.Errorf("%w: domain, policy version, and key reference need bounded nonempty UTF-8 labels", ErrInvalidSpec)
 	}
 	if spec.Width < 2 || spec.Width > maxWidth || spec.Scope > Record ||
-		spec.Empty > PreserveEmpty || spec.Invalid != RejectInvalid || spec.Aliases > RejectAliases {
+		spec.Empty > PreserveEmpty || spec.Aliases > AllowAliases {
 		return nil, fmt.Errorf("%w: unsupported width or rule", ErrInvalidSpec)
-	}
-	maxRaw := spec.MaxInputBytes
-	if maxRaw == 0 {
-		maxRaw = spec.Width * utf8.UTFMax
-	}
-	if maxRaw < spec.Width || maxRaw > maxInputBytes {
-		return nil, fmt.Errorf("%w: MaxInputBytes outside supported bounds", ErrInvalidSpec)
 	}
 	canon := spec.Canonicalizer.Apply
 	canonID := spec.Canonicalizer.ID
@@ -165,8 +152,8 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 	}
 	p := &Policy{domainID: spec.DomainID, version: spec.Version, scope: spec.Scope,
 		empty: spec.Empty, aliases: spec.Aliases, width: spec.Width,
-		maxInputBytes: maxRaw, canonicalize: canon, cipher: c}
-	p.fingerprint = policyFingerprint(spec, ref, canonID, maxRaw)
+		canonicalize: canon, cipher: c}
+	p.fingerprint = policyFingerprint(spec, ref, canonID)
 	return p, nil
 }
 
@@ -194,7 +181,7 @@ func (p *Policy) Mask(raw string, ctx Context) (string, error) {
 		}
 		return "", ErrEmptyInput
 	}
-	if len(raw) > p.maxInputBytes || !utf8.ValidString(raw) {
+	if len(raw) > p.width*utf8.UTFMax || !utf8.ValidString(raw) {
 		return "", ErrInvalidInput
 	}
 	canonical, err := p.canonicalize(raw)
@@ -261,17 +248,15 @@ func appendField(dst []byte, s string) []byte {
 	return append(dst, s...)
 }
 
-func policyFingerprint(spec Spec, ref KeyRef, canonID string, maxRaw int) string {
+func policyFingerprint(spec Spec, ref KeyRef, canonID string) string {
 	b := []byte("scrambler.mask.policy.v1\x00")
 	for _, s := range []string{spec.DomainID, spec.Version, ref.ID, ref.Version,
 		spec.Alphabet, canonID} {
 		b = appendField(b, s)
 	}
-	b = append(b, byte(spec.Scope), byte(spec.Empty), byte(spec.Invalid), byte(spec.Aliases))
+	b = append(b, byte(spec.Scope), byte(spec.Empty), byte(spec.Aliases))
 	var n [4]byte
 	binary.BigEndian.PutUint32(n[:], uint32(spec.Width))
-	b = append(b, n[:]...)
-	binary.BigEndian.PutUint32(n[:], uint32(maxRaw))
 	b = append(b, n[:]...)
 	sum := sha256.Sum256(b)
 	return hex.EncodeToString(sum[:])

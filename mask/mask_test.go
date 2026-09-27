@@ -166,6 +166,7 @@ func TestRejections(t *testing.T) {
 			{func() Spec { s := accountSpec(); s.Alphabet = "9876543210"; return s }(), testRef},
 			{func() Spec { s := accountSpec(); s.Scope = TenantDomain; return s }(), testRef},
 			{accountSpec(), KeyRef{ID: "other-key", Version: "1"}},
+			{func() Spec { s := accountSpec(); s.Version = "v2"; return s }(), KeyRef{ID: "local-test-key", Version: "2"}},
 		}
 		for i, variant := range variants {
 			q, err := Compile(variant.spec, variant.ref, testKey)
@@ -185,7 +186,6 @@ func TestCanonicalizationCollisionRule(t *testing.T) {
 	s.Canonicalizer = Canonicalizer{ID: "ascii-uppercase/v1", Apply: func(raw string) (string, error) {
 		return strings.ToUpper(raw), nil
 	}}
-	s.Aliases = RejectAliases
 	p, err := Compile(s, testRef, testKey)
 	if err != nil {
 		t.Fatal(err)
@@ -260,9 +260,5 @@ func TestUnicodeFixedWidthAndExplicitEmpty(t *testing.T) {
 	}
 	if got, err := p.Mask("", Context{}); err != nil || got != "" {
 		t.Fatalf("explicit missing value: %q, %v", got, err)
-	}
-	s.Invalid = 1
-	if _, err := Compile(s, testRef, testKey); !errors.Is(err, ErrInvalidSpec) {
-		t.Fatalf("unsupported invalid-input handling: %v", err)
 	}
 }

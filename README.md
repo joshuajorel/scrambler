@@ -152,9 +152,10 @@ References are to NIST SP 800-38G Rev. 1, second public draft
 ### Deterministic masking of join keys across databases
 
 The `mask` package compiles a fixed-width policy for each logical data domain.
-It supplies a stable, versioned tweak encoding and a registry that rejects
-different configurations for the same domain ID and version. Location names
-used in the registry never enter a join-domain tweak.
+It supplies a stable, versioned tweak encoding and a registry that holds one
+configuration per domain ID and rejects any different one, including a
+different policy version. Location names used in the registry never enter a
+join-domain tweak.
 
 ```go
 key := ... // 16, 24, or 32 bytes from your key manager
@@ -180,7 +181,8 @@ Import `github.com/joshuajorel/scrambler/mask` for this example. A policy's
 `Fingerprint` is a stable digest of its declared rules and key reference; it
 does not contain key bytes. The caller must resolve the same versioned key
 reference to the same key in every process. Rotate a key with a new policy
-version. The package exposes masking only; it has no unmask operation.
+version; because a registry accepts one version per domain ID, every location
+of the domain moves to the new version together. The package exposes masking only; it has no unmask operation.
 
 `JoinDomain` is for business keys that must join across locations. Use
 `TenantDomain` only when cross-tenant joins are deliberately excluded, and
@@ -194,10 +196,12 @@ Invalid symbols, wrong widths, malformed UTF-8, and oversized input are
 errors. FF1's minimum domain of one million values is enforced at compile
 time. Empty input is rejected by default; `PreserveEmpty` is an explicit
 missing-value rule and never encrypts the empty string. Custom canonicalizers
-need a stable ID that changes when their behavior changes. `RejectAliases`
-requires input already in canonical form, preventing two raw spellings from
-collapsing to one masked value without keeping process-local history.
-`AllowAliases` intentionally permits that collapse.
+need a stable ID that changes when their behavior changes. By default
+(`RejectAliases`) input must already be in canonical form, preventing two raw
+spellings from collapsing to one masked value without keeping process-local
+history. `AllowAliases` is an explicit opt-in to intentional aliasing: choose
+it only when a canonicalizer deliberately normalizes different representations
+of the same logical value, such as zero padding, so that they mask alike.
 
 **Equal canonical inputs producing equal outputs under one join-domain policy
 is intentional.** Anyone who sees the masked datasets can observe equality,
