@@ -239,3 +239,90 @@ func TestGoldenSeparateProcess(t *testing.T) {
 		t.Fatalf("independent process: %v: %s", err, out)
 	}
 }
+
+func TestMaskRowMixedScopes(t *testing.T) {
+	d, keys := fixture(t)
+	ctx := mask.Context{TenantID: "bank-a", RecordID: "payment-42"}
+	inputs := map[string]string{
+		"customer_number": "C000001", "account_number": "700000000002", "card_number": "4000000000000028",
+		"payer_national_id": "100000001", "payer_email": "ava.nguyen.000001@example.test",
+		"beneficiary_account_number": "700000000002",
+	}
+	want := map[string]string{}
+	for _, g := range d.Goldens {
+		if g.Binding == "postgresql.public.customers.customer_number" && g.Input == inputs["customer_number"] {
+			want["sqlserver.dbo.payments.customer_number"] = g.Output
+		}
+	}
+	for _, extra := range []struct {
+		column, input string
+		scope         mask.Scope
+		golden        GoldenContext
+	}{
+		{"payment_reference", "0000012345", mask.Record, GoldenContext{TenantID: ctx.TenantID, RecordID: ctx.RecordID}},
+		{"branch_code", "00012345", mask.TenantDomain, GoldenContext{TenantID: ctx.TenantID}},
+	} {
+		scope := map[mask.Scope]string{mask.Record: "record", mask.TenantDomain: "tenant_domain"}[extra.scope]
+		p := Policy{Domain: extra.column, Version: "v1", Key: KeyReference{ID: "demo-" + extra.column, Version: "v1"}, Scope: scope, Alphabet: "0123456789", Width: len(extra.input)}
+		keys[p.Key.maskRef()] = []byte("0123456789abcdef")
+		compiled, err := mask.Compile(mask.Spec{DomainID: p.Domain, Version: p.Version, Scope: extra.scope, Alphabet: p.Alphabet, Width: p.Width}, p.Key.maskRef(), keys[p.Key.maskRef()])
+		if err != nil {
+			t.Fatal(err)
+		}
+		out, err := compiled.Mask(extra.input, mask.Context{TenantID: extra.golden.TenantID, RecordID: extra.golden.RecordID})
+		if err != nil {
+			t.Fatal(err)
+		}
+		d.Policies = append(d.Policies, p)
+		id := "sqlserver.dbo.payments." + extra.column
+		d.Goldens = append(d.Goldens, Golden{Binding: id, Input: extra.input, Output: out, Fingerprint: compiled.Fingerprint(), Context: &extra.golden})
+		f := Field{Database: "sqlserver", Schema: "dbo", Table: "payments", Column: extra.column, Mode: "mask", Policy: p.Domain, Codec: Codec{Kind: "text", Width: p.Width}}
+		replaced := false
+		for i := range d.Bindings {
+			if d.Bindings[i].ID() == id {
+				d.Bindings[i], replaced = f, true
+			}
+		}
+		if !replaced {
+			d.Bindings = append(d.Bindings, f)
+		}
+		inputs[extra.column] = extra.input
+		want[id] = out
+	}
+	s, err := Compile(d, keys)
+	if err != nil {
+		t.Fatal(err)
+	}
+	row := map[string]any{}
+	for _, f := range d.Bindings {
+		if f.Database == "sqlserver" {
+			row[f.ID()] = "clear"
+			if f.Mode == "mask" {
+				row[f.ID()] = inputs[f.Column]
+			}
+		}
+	}
+	out, _, err := s.MaskRow(row, ctx, nil)
+	if err != nil {
+		t.Fatalf("mixed-scope row: %v", err)
+	}
+	if len(want) != 3 {
+		t.Fatalf("expected outputs: %v", want)
+	}
+	for id, v := range want {
+		if out[id] != v {
+			t.Fatalf("%s: got %v, want %v", id, out[id], v)
+		}
+	}
+	for _, tc := range []struct {
+		ctx  mask.Context
+		want string
+	}{
+		{mask.Context{TenantID: ctx.TenantID}, "sqlserver.dbo.payments.payment_reference"},
+		{mask.Context{RecordID: ctx.RecordID}, "sqlserver.dbo.payments.branch_code"},
+	} {
+		if _, _, err := s.MaskRow(row, tc.ctx, nil); !errors.Is(err, ErrInvalidRow) || !errors.Is(err, mask.ErrInvalidScope) || !strings.Contains(err.Error(), tc.want) {
+			t.Fatalf("context %+v: %v", tc.ctx, err)
+		}
+	}
+}

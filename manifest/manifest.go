@@ -101,6 +101,7 @@ func (f Field) ID() string { return f.Database + "." + f.Schema + "." + f.Table 
 type bound struct {
 	field  Field
 	policy *mask.Binding
+	scope  mask.Scope
 	width  int
 }
 
@@ -137,6 +138,7 @@ func Compile(d Document, keys map[mask.KeyRef][]byte) (*Set, error) {
 	}
 	policies := make(map[string]*mask.Policy)
 	shapes := make(map[string]Policy)
+	scopes := make(map[string]mask.Scope)
 	for _, p := range d.Policies {
 		if p.Domain == "" {
 			return nil, fmt.Errorf("%w: empty policy domain", ErrInvalidManifest)
@@ -173,7 +175,7 @@ func Compile(d Document, keys map[mask.KeyRef][]byte) (*Set, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: policy %q: %w", ErrInvalidManifest, p.Domain, err)
 		}
-		policies[p.Domain], shapes[p.Domain] = compiled, p
+		policies[p.Domain], shapes[p.Domain], scopes[p.Domain] = compiled, p, spec.Scope
 	}
 	s := &Set{bindings: make(map[string]bound), tables: make(map[string][]string)}
 	var registry mask.Registry
@@ -205,6 +207,7 @@ func Compile(d Document, keys map[mask.KeyRef][]byte) (*Set, error) {
 			if err != nil {
 				return nil, fmt.Errorf("%w: binding %q: %w", ErrInvalidManifest, id, err)
 			}
+			b.scope = scopes[f.Policy]
 		default:
 			return nil, fmt.Errorf("%w: binding %q: unknown mode %q", ErrInvalidManifest, id, f.Mode)
 		}
@@ -355,6 +358,9 @@ type NullReport struct{ Binding string }
 // MaskRow accepts a complete row keyed by full binding ID. All bindings must
 // belong to one table and every declared column of that table must be present.
 // Values are strings for text codecs, int64 for numeric, or nil for SQL NULL.
+// Each masked binding receives only the ctx fields its policy scope uses:
+// none for join_domain, TenantID for tenant_domain, and TenantID and RecordID
+// for record. Empty TenantID fails tenant_domain; empty RecordID fails record.
 func (s *Set) MaskRow(row map[string]any, ctx mask.Context, detector *Detector) (map[string]any, []NullReport, error) {
 	if s == nil || len(row) == 0 {
 		return nil, nil, fmt.Errorf("%w: empty row", ErrInvalidRow)
@@ -394,7 +400,7 @@ func (s *Set) MaskRow(row map[string]any, ctx mask.Context, detector *Detector) 
 		if err != nil {
 			return nil, nil, fmt.Errorf("%w: binding %q: %w", ErrInvalidRow, id, err)
 		}
-		masked, err := b.policy.Mask(canonical, ctx)
+		masked, err := b.policy.Mask(canonical, scopedContext(b.scope, ctx))
 		if err != nil {
 			return nil, nil, fmt.Errorf("%w: binding %q: %w", ErrInvalidRow, id, err)
 		}
@@ -410,6 +416,16 @@ func (s *Set) MaskRow(row map[string]any, ctx mask.Context, detector *Detector) 
 		}
 	}
 	return out, nulls, nil
+}
+
+func scopedContext(scope mask.Scope, ctx mask.Context) mask.Context {
+	switch scope {
+	case mask.JoinDomain:
+		return mask.Context{}
+	case mask.TenantDomain:
+		return mask.Context{TenantID: ctx.TenantID}
+	}
+	return ctx
 }
 
 func decode(b bound, v any) (string, error) {
