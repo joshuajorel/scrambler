@@ -181,11 +181,11 @@ The `manifest` package loads a versioned, non-secret JSON file. It compiles
 `mask` policies and registry bindings using key bytes supplied by the caller;
 the file contains only key reference IDs and versions. See
 [`manifest/testdata/banking.json`](manifest/testdata/banking.json) for a
-complete v1 example matching the private banking demo's actual tables:
-PostgreSQL `public.customers`, Oracle `BANK.ACCOUNTS`, and SQL Server
-`dbo.payments`. Names, holder name, dates of birth, and non-target columns
-are explicit `clear` bindings with a reason. There are no database drivers or
-KMS clients in this package.
+complete v1 sample: a multi-database manifest spanning PostgreSQL
+`public.customers`, Oracle `BANK.ACCOUNTS`, and SQL Server `dbo.payments`,
+with equality edges joining them. Declare every column you leave unmasked,
+such as names and dates of birth, as an explicit `clear` binding with a
+reason. There are no database drivers or KMS clients in this package.
 
 The top-level object has `version: 1`, `policies`, `bindings`, `edges`, and
 `goldens`. Each policy has one `domain`, policy `version`, `key` (`id` and
@@ -212,29 +212,46 @@ The three codecs have explicit storage contracts:
 
 The codec width is checked against **every possible output** of the policy,
 including retained and literal parts. Numeric codecs require an all-digit
-layout. The banking demo stores its join fields as `VARCHAR`/`VARCHAR2`, so
-its fixture uses `text`; the numeric and blank-padded codecs are also tested
-with synthetic in-memory rows. A driver adapter should turn its database
+layout. Pick the codec that matches the column's storage: `text` for
+variable-length strings such as `VARCHAR` or `VARCHAR2`, `blank_padded_text`
+for fixed-width `CHAR` columns, and `zero_padded_numeric` for integer columns
+that hold a fixed-width numeric key. A driver adapter should turn its database
 values into these exact Go types and preserve SQL `NULL` as `nil`.
 
 ```go
-manifestFile, err := os.Open("manifest/testdata/banking.json")
-if err != nil { ... }
-defer manifestFile.Close()
-keys := resolveVersionedKeys() // map[mask.KeyRef][]byte; all references
-set, err := manifest.Load(manifestFile, keys)
-if err != nil { ... }
-var duplicates manifest.Detector // share across the whole target dataset
-for nextRow() {
-    // Complete row keyed by IDs such as "postgresql.public.customers.email".
-    row := readRow()
-    // Each binding uses only the fields its scope needs: none for join_domain,
-    // TenantID for tenant_domain, and both for record.
-    ctx := mask.Context{TenantID: tenantID, RecordID: recordID(row)}
-    masked, nulls, err := set.MaskRow(row, ctx, &duplicates)
-    if err != nil { ... } // binding ID appears in the diagnostic
-    reportNulls(nulls)
-    writeRow(masked)
+package example
+
+import (
+    "iter"
+    "os"
+
+    "github.com/joshuajorel/scrambler/manifest"
+    "github.com/joshuajorel/scrambler/mask"
+)
+
+// loadManifest compiles every policy once. keys must hold the key bytes for
+// every key reference the manifest names.
+func loadManifest(path string, keys map[mask.KeyRef][]byte) (*manifest.Set, error) {
+    f, err := os.Open(path)
+    if err != nil { return nil, err }
+    defer f.Close()
+    return manifest.Load(f, keys)
+}
+
+// maskRows masks complete rows of one table, each keyed by binding ID such as
+// "postgresql.public.customers.email" and paired with its record ID. Share
+// one Detector across the whole target dataset.
+func maskRows(set *manifest.Set, duplicates *manifest.Detector, tenantID string,
+    rows iter.Seq2[string, map[string]any], write func(map[string]any) error) error {
+    for recordID, row := range rows {
+        // Each binding uses only the fields its scope needs: none for
+        // join_domain, TenantID for tenant_domain, and both for record.
+        ctx := mask.Context{TenantID: tenantID, RecordID: recordID}
+        masked, _, err := set.MaskRow(row, ctx, duplicates)
+        if err != nil { return err } // the error names the binding ID
+        if err := write(masked); err != nil { return err }
+    }
+    return nil
 }
 ```
 
@@ -250,17 +267,16 @@ binding fails without a tenant ID, and a `record` binding without a record
 ID. A `Detector` rejects repeated masked outputs in columns marked `unique`;
 create a new one for each target dataset. It keeps prior outputs in memory, so
 a very large stream may need an application-owned database uniqueness check
-instead. The library does not coordinate transactions or writes across the
-three databases.
+instead. The library does not coordinate transactions or writes across
+databases.
 
-Policy fingerprints include the key reference label and version, but not key
-bytes. Thus two processes resolving one reference to different keys pass the
-fingerprint divergence check. The required golden fixtures catch disagreement
-for their listed inputs when each process loads the manifest, but they are not
-a general key-consistency protocol. An optional one-way key check value could
-be added in a future format version; doing so would let holders compare key
-equality without sharing the key, while exposing equality of keys across
-manifests. This remains an open design choice for the banking demo rollout.
+Policy fingerprints include the key reference ID and version, but not key
+bytes, so they cannot show that a reference resolved to the right key. The
+required golden fixtures do: `Load` masks each pinned input with the supplied
+key and fails unless it reproduces the pinned output. A key reference that
+resolves to the wrong key bytes therefore fails loading before any row is
+masked, unless the wrong key happens to reproduce every pinned output of that
+policy (for one fixture, a chance of about one in the encrypted domain size).
 
 ## Operating guidance
 
