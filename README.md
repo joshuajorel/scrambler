@@ -194,7 +194,7 @@ domain ID, policy version, and the applicable logical context. It does not
 derive context from table or column names. For join keys, bind every parent
 and foreign-key location to the same compiled policy.
 
-Policies accept one exact symbol width and an ordered Unicode alphabet.
+Plain policies accept one exact symbol width and an ordered Unicode alphabet.
 Invalid symbols, wrong widths, malformed UTF-8, and oversized input are
 errors. FF1's minimum domain of one million values is enforced at compile
 time. Empty input is rejected by default; `PreserveEmpty` is an explicit
