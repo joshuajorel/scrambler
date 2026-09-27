@@ -191,6 +191,7 @@ func TestWycheproof(t *testing.T) {
 			if got.total != f.NumberOfTests {
 				t.Errorf("vector file has %d cases, header declares %d", got.total, f.NumberOfTests)
 			}
+			// The tally is complete only when -run selected every case.
 			if ran == got.total {
 				if want := wycheproofCounts[name]; got != want {
 					t.Errorf("tally = %+v\n want   %+v", got, want)
