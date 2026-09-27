@@ -126,13 +126,15 @@ even across separators and different alphabets; the product of their alphabet
 sizes must reach one million. The implementation uses FF1 over a binary domain
 and cycle walking to permute exactly that combined domain. The layout's
 literals, widths, alphabet order, and check-digit rule enter its fingerprint.
+Compile and bind a layout policy once, then mask every value through the
+binding:
 
 ```go
 package example
 
 import "github.com/joshuajorel/scrambler/mask"
 
-func maskCustomerNumber(key []byte, raw string) (string, error) {
+func bindCustomerNumber(registry *mask.Registry, key []byte) (*mask.Binding, error) {
     policy, err := mask.Compile(mask.Spec{
         DomainID: "customer-number", Version: "v1", Scope: mask.JoinDomain,
         Layout: []mask.Part{
@@ -140,8 +142,18 @@ func maskCustomerNumber(key []byte, raw string) (string, error) {
             {Kind: mask.EncryptedPart, Width: 6, Alphabet: "0123456789"},
         },
     }, mask.KeyRef{ID: "customer-key", Version: "2026-09"}, key)
-    if err != nil { return "", err }
-    return policy.Mask(raw, mask.Context{}) // e.g. raw == "C000123"
+    if err != nil { return nil, err }
+    return registry.Bind("customers.number", policy)
+}
+
+func maskCustomerNumbers(customers *mask.Binding, raws []string) ([]string, error) {
+    masked := make([]string, 0, len(raws))
+    for _, raw := range raws { // e.g. raw == "C000123"
+        m, err := customers.Mask(raw, mask.Context{})
+        if err != nil { return nil, err }
+        masked = append(masked, m)
+    }
+    return masked, nil
 }
 ```
 
