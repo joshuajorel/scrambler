@@ -1,250 +1,149 @@
 # scrambler
 
-Format-preserving encryption (FPE) for Go: **FF1** from NIST SP 800-38G,
-following the stricter requirements of the SP 800-38G Rev. 1 second public
-draft (February 2025).
+scrambler is a Go library for masking sensitive production data before copying
+it to development or test environments. Its `mask` package uses NIST FF1
+format-preserving encryption to keep values in a declared format while making
+the same business key mask to the same value in every table, file, or service
+that carries it. This keeps foreign-key joins usable in masked copies.
 
-- FF1 only. FF3 and FF3-1 are intentionally not provided (Rev. 1 removes FF3).
-- Always enforces a domain of at least one million values
-  (`radix^minlen >= 1,000,000`); there is no legacy "≥ 100" mode.
-- Radix 2 through 65,536, over Unicode rune alphabets, byte alphabets, or raw
-  `[]uint16` numerals.
-- AES-128/192/256 through Go's `crypto/aes`, forward direction only.
-- Exact integer arithmetic (`math/big`), no floating point anywhere.
-- Standard library only. Goroutine-safe, stateless ciphers; the tweak is passed
-  on every call. Never panics on caller input.
-
-> **Status:** new and not yet independently audited. SP 800-38G Rev. 1 is a
-> draft; its requirements may change before it is final.
+Use it when you need consistent, fixed-width pseudonyms for identifiers. Do
+not use masked data as anonymous or public data: equal values remain linkable,
+and someone with the key can reverse them. FF1 also provides no authentication;
+use a separate integrity check if you need to detect tampering. The library is
+new and has not been independently audited. The NIST SP 800-38G Rev. 1 second
+public draft (February 2025) that it follows may change before publication.
 
 ```sh
-go get github.com/joshuajorel/scrambler/ff1
+go get github.com/joshuajorel/scrambler/mask
 ```
 
-## Usage
+## Quick start: mask a business key
+
+Supply the AES key from your key manager and identify it with a versioned
+`KeyRef`. Compile one policy for the logical account number, bind both columns
+to it, and mask each value through its binding:
 
 ```go
-import "github.com/joshuajorel/scrambler/ff1"
+package example
 
-key := ... // 16, 24, or 32 random bytes from your key management system
+import "github.com/joshuajorel/scrambler/mask"
 
-c, err := ff1.New(key, ff1.Digits)
-if err != nil { ... }
+func maskAccountIDs(key []byte) (string, string, error) {
+    policy, err := mask.Compile(mask.Spec{
+        DomainID: "account-number", Version: "v1",
+        Alphabet: "0123456789", Width: 12, Scope: mask.JoinDomain,
+    }, mask.KeyRef{ID: "accounts-key", Version: "2026-09"}, key)
+    if err != nil { return "", "", err }
 
-// Encrypt the middle six digits of a card number. The digits that stay in
-// the clear, plus a purpose label and version, form the tweak.
-card := "4111119876541111"
-tweak := []byte("card-middle-v1|" + card[:6] + "|" + card[12:])
+    var registry mask.Registry
+    parent, err := registry.Bind("accounts.id", policy)
+    if err != nil { return "", "", err }
+    foreignKey, err := registry.Bind("orders.account_id", policy)
+    if err != nil { return "", "", err }
 
-ct, err := c.Encrypt(card[6:12], tweak) // "120431": six digits in, six out
-pt, err := c.Decrypt(ct, tweak)         // "987654"
+    a, err := parent.Mask("000123456789", mask.Context{})
+    if err != nil { return "", "", err }
+    b, err := foreignKey.Mask("000123456789", mask.Context{})
+    return a, b, err // a == b when err is nil
+}
 ```
 
-### Alphabets
+The same policy and key produce the same mask in independent processes too.
+The registry checks that every binding of a domain ID uses the same declared
+policy; it does not coordinate processes. The `mask` package exposes masking
+only, with no unmask operation.
 
-An `Alphabet` maps symbols to numerals; the i-th symbol is numeral i and the
-radix is the number of symbols.
+## Core concepts
 
-| Constructor | Input is | Radix |
+### Share one policy per business key
+
+A domain ID names a *logical* value, such as `account-number`. Bind every
+parent and foreign-key column that contains that value to the same policy,
+including across databases. Keep the alphabet and its symbol order, width,
+canonical form, scope, policy version, and key consistent. For example,
+`"0042"` and `"42"` are different inputs unless you deliberately normalize
+them. Each process must resolve the same key reference to the same key bytes.
+A policy's `Fingerprint` is a stable digest of its declared rules and key
+reference; it contains no key bytes. A registry rejects a different policy or
+version for an already-bound domain ID.
+
+Plain policies accept an exact width in Unicode symbols and an ordered Unicode
+alphabet. Invalid symbols, wrong widths, malformed UTF-8, and oversized input
+return errors. Empty input is rejected by default. `PreserveEmpty` is an
+explicit rule for a known missing-value sentinel and does not encrypt it.
+A custom canonicalizer needs a stable ID that changes when its rules change.
+The default `RejectAliases` requires raw input to be canonical; choose
+`AllowAliases` only when different spellings intentionally mean the same
+logical value and should mask alike, such as a deliberate zero-padding rule.
+
+### Tweaks and scopes
+
+The tweak is a non-secret input to FF1 that selects a permutation alongside
+the key. `mask` constructs a length-prefixed tweak from the domain ID, policy
+version, and scope context. For `JoinDomain`, it is constant for the logical
+business key. **Do not put table names, column names, or row IDs in a join-key
+tweak**: the same real key would then mask differently at each location and
+break joins. Registry location names never enter the tweak.
+
+| Scope | Context required | Effect |
 |---|---|---|
-| `ff1.NewAlphabet("αβγδ…")`, `ff1.NewRuneAlphabet([]rune{…})` | UTF-8; one rune per symbol | rune count (not byte length), 2..65536 |
-| `ff1.NewByteAlphabet([]byte{…})` | raw bytes; one byte per symbol | 2..256 |
-| `ff1.RadixOnly(r)` | numerals only (`EncryptNumerals`) | 2..65536 |
+| `JoinDomain` | Empty `mask.Context{}` | Same canonical value masks alike across all bound locations. |
+| `TenantDomain` | `mask.Context{TenantID: tenant}` | Values can join within a tenant; equal values in different tenants mask differently. |
+| `Record` | `mask.Context{RecordID: record}`; `TenantID` is optional | Each record gets its own context when per-record variation is needed. |
 
-Predefined: `Digits` (10), `HexLower`/`HexUpper` (16), `LowerAlphanumeric`
-and `UpperAlphanumeric` (36; the NIST samples use `0-9a-z`), and
-`Alphanumeric` (62, `0-9a-zA-Z`, the digit order of `math/big` and other FF1
-libraries). Symbols must be distinct; U+FFFD and invalid code points are
-rejected. Lengths are counted in symbols, so a Unicode alphabet counts runes.
+`TenantDomain` excludes cross-tenant joins by design. `Record` is unsuitable
+for a key that must join across records. For structured layouts, the literal
+and retained text also enters the tweak, so different clear parts select
+different permutations. The check digit does not enter it.
 
-### Numerals
+### Versions and key rotation
 
-```go
-alpha, _ := ff1.RadixOnly(65536)
-c, _ := ff1.New(key, alpha)
-ct, err := c.EncryptNumerals([]uint16{35521, 37776}, tweak) // each < radix
-```
+The policy version and key reference are explicit. To rotate a key, use a new
+key reference and a new policy version, then deploy that version to every
+process masking the domain. One registry accepts only one version of a domain
+ID at a time; separate registries do not coordinate a rollout. Re-masking
+existing copies or preserving joins across versions requires a planned data
+migration. Keep fixed input/output examples in your own tests: a changed
+output can silently break joins with earlier masked data.
 
-`EncryptNumerals` / `DecryptNumerals` work with every cipher and return a new
-slice; the input is not modified.
+### Domain size and short fields
 
-### Options and errors
+FF1 requires at least **one million possible values** in the encrypted domain;
+`mask.Compile` rejects smaller domains. Six decimal digits are the minimum
+plain decimal width. A two-digit status, four-digit PIN, or other short field
+cannot be masked alone with this library. Where the data model permits,
+combine encrypted positions into a larger structured layout or use a wider
+canonical field. Otherwise choose a different masking design for that field;
+do not bypass the minimum. Retained text and a check digit do not count toward
+the encrypted domain.
 
-```go
-c, err := ff1.New(key, ff1.Digits,
-	ff1.WithMinLength(8),        // default: smallest n with radix^n >= 10^6
-	ff1.WithMaxLength(19),       // default: 2^32-1 (2^27-1 on 32-bit platforms)
-	ff1.WithMaxTweakLength(64))  // default: 2^32-1 bytes (2^30-1 on 32-bit)
-```
+### Structured layouts and Luhn
 
-**Cap lengths for untrusted input.** The defaults are the largest lengths
-FF1 allows (on 32-bit platforms, the largest for which every internal size
-fits in an `int`), so one call can be asked to process gigabytes, and the
-cost of a call grows faster than linearly with the input length. When
-plaintexts, ciphertexts, or tweaks come from untrusted callers, set
-`WithMaxLength` and `WithMaxTweakLength` to what the data needs — for
-example 19 digits and a 64-byte tweak for card numbers — so oversized
-requests fail fast with `ErrInvalidLength` or `ErrTweakTooLong`. Lengths are
-checked before anything proportional to the input is allocated.
-
-Every error wraps one sentinel, to be tested with `errors.Is`:
-`ErrInvalidKeyLength`, `ErrInvalidRadix`, `ErrInvalidAlphabet`,
-`ErrDomainTooSmall`, `ErrInvalidLength`, `ErrInvalidNumeral`,
-`ErrInvalidSymbol`, `ErrTweakTooLong`, `ErrInvalidOption`, `ErrNoSymbols`, and
-`ErrUninitialized` (zero-value `Cipher`). Messages never contain key, tweak,
-plaintext, or ciphertext material.
-
-## Security notes
-
-References are to NIST SP 800-38G Rev. 1, second public draft
-(<https://doi.org/10.6028/NIST.SP.800-38Gr1.2pd>).
-
-- **Confidentiality only — no authentication.** FF1 has no integrity check.
-  Decrypting with the wrong key or tweak, or decrypting a tampered ciphertext,
-  returns a well-formed plaintext of the right length and alphabet, not an
-  error. To detect tampering or a mismatched context, store a keyed MAC —
-  for example HMAC-SHA-256 under a separate key — computed over the
-  ciphertext *and* its context (the tweak, or the fields it is derived from),
-  for example in another column, and verify it before trusting a decryption.
-  An unkeyed checksum (a CRC, a Luhn check digit, or a plain hash) only
-  catches accidental corruption: anyone who can change the ciphertext can
-  recompute it, so it authenticates nothing.
-- **Deterministic.** The same key, tweak, and plaintext always give the same
-  ciphertext, so equal values under the same tweak are visibly equal. This is
-  inherent to FPE.
-- **Tweaks.** The tweak is not secret, and the API requires one on every call,
-  but that alone does not make tweaks vary — passing a constant is legal and
-  common. Appendix C recommends a tweak that varies with each instance, taken
-  from information statically associated with the plaintext, so that
-  equal plaintexts in different contexts encrypt differently and one
-  compromised value does not reveal others. Encode that context
-  unambiguously, for example as length-prefixed fields for tenant, table and
-  field, record identifier, purpose, and a version: `"a|b" + "c"` and
-  `"a" + "|bc"` must not collide.
-- **Small domains.** Rev. 1 requires `radix^minlen >= 1,000,000` in response
-  to message-recovery and round-function-recovery attacks on small domains
-  (Appendix A.2 and Appendix G, citing Bellare–Hoang–Tessaro, Durak–Vaudenay,
-  and Hoang–Tessaro–Trieu). This package enforces it for every input and
-  configuration, with no override. The original 2016 minimum of 100 is not
-  offered.
-- **The minimum is still small.** 10^6 values is about 20 bits. Anyone with
-  access to an encryption or decryption oracle can enumerate a domain that
-  small, and an attacker can guess a plaintext with probability
-  `g / radix^n` after `g` guesses (Appendix A.1). Treat encryption and
-  decryption endpoints as sensitive: authorize callers, rate-limit, and
-  monitor them. Prefer longer inputs (or padding) where the format allows.
-- **What the 2^77 figure means.** Appendix A.2 estimates that, at the 10^6
-  domain size, the known attacks need a data complexity of at least 2^77 to
-  recover a single target message. That is an estimate for the published
-  message-recovery attacks, not a general security guarantee for FF1.
-- **Length leakage.** Ciphertexts have the plaintext's length. Pad to a fixed
-  length if lengths are sensitive (Section 2).
-- **Timing.** `math/big` is not constant-time, so the running time can depend
-  on the values being processed. `crypto/aes` is constant-time only on
-  platforms with hardware AES (for example AES-NI or the ARMv8 crypto
-  extensions). Do not use this package where a local timing side channel is
-  a concern.
-- **Keys.** Use uniformly random 128-, 192-, or 256-bit keys, keep them
-  secret, and consider separate keys per data type or purpose. Key management
-  is out of scope.
-- **Validation.** This is not a CAVP/CMVP-validated module.
-
-### Deterministic masking of join keys across databases
-
-The `mask` package compiles a fixed-width policy for each logical data domain.
-It supplies a stable, versioned tweak encoding and a registry that holds one
-configuration per domain ID and rejects any different one, including a
-different policy version. Location names used in the registry never enter a
-join-domain tweak.
+Use `Spec.Layout` in place of `Alphabet` and `Width` for a fixed format. Parts
+can be exact literals, encrypted segments, validated but retained segments,
+and an optional final `LuhnDigit`. All encrypted positions form one domain,
+even across separators and different alphabets; the product of their alphabet
+sizes must reach one million. The implementation uses FF1 over a binary domain
+and cycle walking to permute exactly that combined domain. The layout's
+literals, widths, alphabet order, and check-digit rule enter its fingerprint.
 
 ```go
-key := ... // 16, 24, or 32 bytes from your key manager
-policy, err := mask.Compile(mask.Spec{
-	DomainID: "account-number", Version: "v1",
-	Alphabet: "0123456789", Width: 12, Scope: mask.JoinDomain,
-}, mask.KeyRef{ID: "accounts-key", Version: "2026-09"}, key)
-if err != nil { ... }
+package example
 
-var locations mask.Registry
-parent, err := locations.Bind("accounts.id", policy)
-if err != nil { ... }
-foreignKey, err := locations.Bind("orders.account_id", policy)
-if err != nil { ... }
-a, err := parent.Mask("000123456789", mask.Context{})
-if err != nil { ... }
-b, err := foreignKey.Mask("000123456789", mask.Context{})
-if err != nil { ... }
-// a == b, including across independent processes with the same policy and key.
+import "github.com/joshuajorel/scrambler/mask"
+
+func maskCustomerNumber(key []byte, raw string) (string, error) {
+    policy, err := mask.Compile(mask.Spec{
+        DomainID: "customer-number", Version: "v1", Scope: mask.JoinDomain,
+        Layout: []mask.Part{
+            {Kind: mask.LiteralPart, Literal: "C"},
+            {Kind: mask.EncryptedPart, Width: 6, Alphabet: "0123456789"},
+        },
+    }, mask.KeyRef{ID: "customer-key", Version: "2026-09"}, key)
+    if err != nil { return "", err }
+    return policy.Mask(raw, mask.Context{}) // e.g. raw == "C000123"
+}
 ```
-
-Import `github.com/joshuajorel/scrambler/mask` for this example. A policy's
-`Fingerprint` is a stable digest of its declared rules and key reference; it
-does not contain key bytes. The caller must resolve the same versioned key
-reference to the same key in every process. Rotate a key with a new policy
-version. A registry accepts one version per domain ID, so every location bound
-in that registry moves to the new version together. Each process has its own
-registry and separate processes are not coordinated by it, so deploy a new
-version to every process that masks the domain together. The package exposes
-masking only; it has no unmask operation.
-
-`JoinDomain` is for business keys that must join across locations. Use
-`TenantDomain` only when cross-tenant joins are deliberately excluded, and
-`Record` when per-record variation is needed. The tweak uses length-prefixed
-domain ID, policy version, and the applicable logical context. It does not
-derive context from table or column names. For join keys, bind every parent
-and foreign-key location to the same compiled policy.
-
-Plain policies accept one exact symbol width and an ordered Unicode alphabet.
-Invalid symbols, wrong widths, malformed UTF-8, and oversized input are
-errors. FF1's minimum domain of one million values is enforced at compile
-time. Empty input is rejected by default; `PreserveEmpty` is an explicit
-missing-value rule and never encrypts the empty string. Custom canonicalizers
-need a stable ID that changes when their behavior changes. By default
-(`RejectAliases`) input must already be in canonical form, preventing two raw
-spellings from collapsing to one masked value without keeping process-local
-history. `AllowAliases` is an explicit opt-in to intentional aliasing: choose
-it only when a canonicalizer deliberately normalizes different representations
-of the same logical value, such as zero padding, so that they mask alike.
-
-**Equal canonical inputs producing equal outputs under one join-domain policy
-is intentional.** Anyone who sees the masked datasets can observe equality,
-join records, and count repeated values. Masking is pseudonymization, not
-anonymization. Keep keys and masking access controlled, and do not treat a
-masked copy as public data.
-
-Structured policies use `Spec.Layout` instead of `Alphabet` and `Width`. A
-layout is a sequence of exact literals, encrypted segments, validated but
-retained segments, and optionally a final Luhn digit. Every encrypted position
-is combined into one domain, even across separators or different alphabets.
-The product of their alphabet sizes must be at least 1,000,000; retained
-characters and the check digit do not count. The implementation uses FF1 over
-a binary domain and cycle walking to permute exactly that combined domain.
-The layout, including each literal, width, alphabet order, and check-digit
-rule, enters the policy fingerprint.
-
-Literal and retained parts are bound into the tweak: after the plain policy
-fields, the tweak appends each such part's rune position and its actual
-text, length-prefixed. Values that differ only in clear text therefore mask
-their encrypted positions differently. Two cards with different first six
-digits and the same middle nine do not share masked middle digits, and two
-email layouts with separators in different positions do not share masked
-letters. The check digit is not bound; it is recomputed. Plain policies'
-tweaks are unchanged.
-
-```go
-customer, err := mask.Compile(mask.Spec{
-	DomainID: "customer-number", Version: "v1", Scope: mask.JoinDomain,
-	Layout: []mask.Part{
-		{Kind: mask.LiteralPart, Literal: "C"},
-		{Kind: mask.EncryptedPart, Width: 6, Alphabet: "0123456789"},
-	},
-}, mask.KeyRef{ID: "customer-key", Version: "2026-09"}, key)
-if err != nil { ... }
-masked, err := customer.Mask("C000123", mask.Context{})
-// "C" stays fixed; the six digits have exactly 10^6 possible values.
-```
-
-The same pieces express these other fixed formats:
 
 | Format | Layout | Example input |
 |---|---|---|
@@ -252,72 +151,17 @@ The same pieces express these other fixed formats:
 | US phone | `+1-`, 3 encrypted digits, `-`, 3 encrypted digits, `-`, 4 encrypted digits | `+1-202-555-0001` |
 | Email local part | 3 encrypted lowercase letters, `.`, 6 encrypted lowercase letters, `.`, 6 encrypted digits, `@example.test` | `ava.nguyen.000001@example.test` |
 
-For the card, the first six digits are checked against their declared
-alphabet and copied; the incoming Luhn digit must be valid, and a new digit
-is calculated from the masked payload. `LuhnDigit` requires an all-digit
-payload and must be the last part. Literal text must match exactly, and all
+For a card layout, retained digits are checked and copied. The incoming Luhn
+digit must be valid; a new one is calculated after masking. `LuhnDigit` must
+be last and requires an all-digit payload. Literals must match exactly, and
 segment widths count Unicode runes. Malformed values return errors. A
-different email local-part length needs a separate fixed layout and domain ID;
-short lengths with a combined domain below one million are rejected. These
-policies do not parse arbitrary email syntax or provide a regex language.
-Bind each location that represents the same business key to the same policy.
+different email local-part length needs its own fixed layout and domain ID;
+layouts do not parse arbitrary email syntax or provide a regex language.
+Literal and retained parts are bound to the tweak with their rune position
+and actual text, length-prefixed. Two cards with different retained first six
+digits and the same middle nine therefore need not share masked middle digits.
 
-The rest of this section describes a manual recipe that calls `ff1` directly.
-Its tweak encoding differs from the `mask` package's, so the two produce
-different outputs for the same value and cannot be mixed for one domain: every
-location of a domain must use the same approach.
-
-A common use of FF1 is to pseudonymize an identifier, such as an account
-number, so that masked copies in different databases, services, or files can
-still be joined on the masked value. That needs every system to turn the same
-value into exactly the same ciphertext, which deliberately inverts the
-per-record tweak advice above:
-
-- **One key and one logical-domain tweak everywhere.** Every system uses the
-  same key (the same KMS entry) and the same constant tweak naming the logical
-  domain and a version, for example `[]byte("account-number:v1")`. Do not put
-  table or column names, record IDs, or other per-location data in the tweak:
-  they make the same account number mask differently in different places and
-  break the joins.
-- **One alphabet with a fixed symbol order.** Use the same alphabet everywhere
-  (for example `ff1.Digits`); a different symbol order is a different
-  permutation.
-- **One representation and normalization policy.** Apply the same canonical
-  form before masking in every system: the same character set and case,
-  separators and whitespace stripped the same way, and the same width or zero
-  padding (`"0042"` and `"42"` are different inputs). Decide up front what
-  happens to values that fail validation, rather than masking them
-  inconsistently.
-- **Masking needs only `Encrypt`.** If no system needs the original values
-  back, never call `Decrypt`, and keep the key where only the masking service
-  can use it: whoever holds the key can reverse every masked value.
-- **Keep golden ciphertexts.** Record a few fixed inputs with their expected
-  masked outputs and check them in each system's tests and after every
-  library upgrade; any change in output silently breaks joins with data masked
-  earlier. This package pins such values for its built-in alphabets in
-  `ff1/golden_test.go`, and changing them would be a breaking change.
-
-The trade-off is intended but real: under one key and tweak, equal values are
-equal everywhere, so anyone who sees masked data can link records across
-datasets and count repeated values, and each value still has only the domain
-size of its format.
-
-```go
-// The same key, alphabet, tweak, and normalization in every service.
-masker, err := ff1.New(key, ff1.Digits, ff1.WithMaxLength(12), ff1.WithMaxTweakLength(32))
-if err != nil { ... }
-var accountTweak = []byte("account-number:v1")
-
-func maskAccount(raw string) (string, error) {
-	acct, err := normalizeAccount(raw) // e.g. strip spaces and dashes, left-pad to 12 digits
-	if err != nil {
-		return "", err
-	}
-	return masker.Encrypt(acct, accountTweak)
-}
-```
-
-### Shareable policy manifests and streaming rows
+## Shareable policy manifests and streaming rows
 
 The `manifest` package loads a versioned, non-secret JSON file. It compiles
 `mask` policies and registry bindings using key bytes supplied by the caller;
@@ -403,6 +247,164 @@ a general key-consistency protocol. An optional one-way key check value could
 be added in a future format version; doing so would let holders compare key
 equality without sharing the key, while exposing equality of keys across
 manifests. This remains an open design choice for the banking demo rollout.
+
+## Operating guidance
+
+Keep keys and masking access in a controlled production-side service or key
+manager, outside the non-production environment. Whoever holds the key can
+reverse FF1 output, even though `mask` has no unmask method. Use uniformly
+random 128-, 192-, or 256-bit AES keys. Decide which users and jobs may call
+masking, and rate-limit and monitor endpoints: a small enumerable domain can
+be guessed even though its one-million-value minimum is enforced.
+
+Treat validation and masking errors as failures. Do not pass the original value
+through on error, since that would leak production data into a masked copy.
+Define an explicit missing-value rule where needed and quarantine or reject
+malformed rows. Preserve the same representation and normalization across all
+systems that carry a business key.
+
+Equality is visible by design. A reader of masked datasets can join rows and
+count repeated values. This is **pseudonymization, not anonymization**; do not
+publish masked copies as public data. FF1 retains length and format and offers
+confidentiality without authentication. If tamper detection matters, verify a
+keyed MAC over the ciphertext and its context before trusting decryption; a
+Luhn digit or unkeyed checksum only detects accidental errors.
+
+## Direct `ff1` API
+
+Use `ff1` when you need the lower-level engine or a format outside the fixed
+policy model. For production-to-non-production join keys, prefer `mask`: its
+policy and registry make the shared tweak and format explicit. A direct FF1
+join-key recipe uses a different tweak encoding from `mask`, so the two
+approaches produce different outputs and must not be mixed for one domain.
+
+`ff1` implements FF1 from NIST SP 800-38G under the stricter requirements of
+the Rev. 1 second public draft. FF3 and FF3-1 are not provided; Rev. 1 removes
+FF3. It uses AES-128/192/256 through Go's `crypto/aes`, forward direction only,
+exact `math/big` arithmetic, and the standard library. Ciphers are stateless
+and safe for concurrent goroutines; callers pass a tweak for each call.
+Caller input returns errors rather than panics.
+
+```sh
+go get github.com/joshuajorel/scrambler/ff1
+```
+
+```go
+package example
+
+import "github.com/joshuajorel/scrambler/ff1"
+
+func maskCardMiddle(key []byte) (string, error) {
+    c, err := ff1.New(key, ff1.Digits)
+    if err != nil { return "", err }
+    card := "4111119876541111"
+    // Encrypt the middle six digits; retain the first six and last four.
+    tweak := []byte("card-middle-v1|" + card[:6] + "|" + card[12:])
+    middle, err := c.Encrypt(card[6:12], tweak)
+    if err != nil { return "", err }
+    return card[:6] + middle + card[12:], nil
+}
+```
+
+For a direct FF1 join-key recipe, use the same key, alphabet and symbol order,
+normalization, and logical-domain tweak in every service. Do not add location
+or record context to that tweak. Masking only requires `Encrypt`; if no system
+needs originals, do not call `Decrypt`. Keep fixed ciphertexts in tests after
+library upgrades. The built-in alphabet outputs are pinned in
+`ff1/golden_test.go`.
+
+### Alphabets and numerals
+
+An `Alphabet` maps each symbol to a numeral in declaration order. Its radix
+is the symbol count, and Unicode string lengths are counted in runes.
+
+| Constructor | Input is | Radix |
+|---|---|---|
+| `ff1.NewAlphabet("αβγδ…")`, `ff1.NewRuneAlphabet([]rune{…})` | UTF-8; one rune per symbol | rune count (not byte length), 2..65536 |
+| `ff1.NewByteAlphabet([]byte{…})` | raw bytes; one byte per symbol | 2..256 |
+| `ff1.RadixOnly(r)` | numerals only (`EncryptNumerals`) | 2..65536 |
+
+Predefined alphabets: `Digits` (10), `HexLower`/`HexUpper` (16),
+`LowerAlphanumeric` and `UpperAlphanumeric` (36; NIST samples use `0-9a-z`),
+and `Alphanumeric` (62, `0-9a-zA-Z`, the digit order of `math/big` and other
+FF1 libraries). Symbols must be distinct; U+FFFD and invalid code points are
+rejected. `EncryptNumerals` and `DecryptNumerals` take `[]uint16` and return a
+new slice without modifying the input. They work with every cipher, including
+`ff1.RadixOnly(65536)`; each numeral must be less than the radix.
+
+### Options and errors
+
+`ff1.New(key, alphabet, options...)` accepts `WithMinLength`, `WithMaxLength`,
+and `WithMaxTweakLength`. The default minimum is the smallest length with
+`radix^length >= 1,000,000`; there is no legacy 100-value mode. The default
+maximum length is 2^32−1 symbols (2^27−1 on 32-bit platforms); the default
+maximum tweak length is 2^32−1 bytes (2^30−1 on 32-bit platforms). Set caps
+for untrusted input, for example 19 digits and a 64-byte tweak for a card,
+because cost grows faster than linearly with length. Oversized requests fail
+before proportional allocation with `ErrInvalidLength` or `ErrTweakTooLong`.
+
+Errors wrap sentinels testable with `errors.Is`: `ErrInvalidKeyLength`,
+`ErrInvalidRadix`, `ErrInvalidAlphabet`, `ErrDomainTooSmall`,
+`ErrInvalidLength`, `ErrInvalidNumeral`, `ErrInvalidSymbol`,
+`ErrTweakTooLong`, `ErrInvalidOption`, `ErrNoSymbols`, and `ErrUninitialized`
+(for a zero-value `Cipher`). Error messages omit key, tweak, plaintext, and
+ciphertext material.
+
+### FF1 security details
+
+References are to NIST SP 800-38G Rev. 1, second public draft
+(<https://doi.org/10.6028/NIST.SP.800-38Gr1.2pd>).
+
+- **Confidentiality only — no authentication.** FF1 has no integrity check.
+  Decrypting with the wrong key or tweak, or decrypting a tampered ciphertext,
+  returns a well-formed plaintext of the right length and alphabet, not an
+  error. To detect tampering or a mismatched context, store a keyed MAC —
+  for example HMAC-SHA-256 under a separate key — computed over the
+  ciphertext *and* its context (the tweak, or the fields it is derived from),
+  for example in another column, and verify it before trusting a decryption.
+  An unkeyed checksum (a CRC, a Luhn check digit, or a plain hash) only
+  catches accidental corruption: anyone who can change the ciphertext can
+  recompute it, so it authenticates nothing.
+- **Deterministic.** The same key, tweak, and plaintext always give the same
+  ciphertext, so equal values under the same tweak are visibly equal. This is
+  inherent to FPE.
+- **Tweaks for direct FF1 use.** The tweak is not secret, and the API requires
+  one on every call, but that alone does not make tweaks vary — passing a
+  constant is legal and common. For values that do not need joins, Appendix C
+  recommends a tweak that varies with each instance, taken from information
+  statically associated with the plaintext, so that
+  equal plaintexts in different contexts encrypt differently and one
+  compromised value does not reveal others. Encode that context
+  unambiguously, for example as length-prefixed fields for tenant, table and
+  field, record identifier, purpose, and a version: `"a|b" + "c"` and
+  `"a" + "|bc"` must not collide.
+- **Small domains.** Rev. 1 requires `radix^minlen >= 1,000,000` in response
+  to message-recovery and round-function-recovery attacks on small domains
+  (Appendix A.2 and Appendix G, citing Bellare–Hoang–Tessaro, Durak–Vaudenay,
+  and Hoang–Tessaro–Trieu). This package enforces it for every input and
+  configuration, with no override. The original 2016 minimum of 100 is not
+  offered.
+- **The minimum is still small.** 10^6 values is about 20 bits. Anyone with
+  access to an encryption or decryption oracle can enumerate a domain that
+  small, and an attacker can guess a plaintext with probability
+  `g / radix^n` after `g` guesses (Appendix A.1). Treat encryption and
+  decryption endpoints as sensitive: authorize callers, rate-limit, and
+  monitor them. Prefer longer inputs (or padding) where the format allows.
+- **What the 2^77 figure means.** Appendix A.2 estimates that, at the 10^6
+  domain size, the known attacks need a data complexity of at least 2^77 to
+  recover a single target message. That is an estimate for the published
+  message-recovery attacks, not a general security guarantee for FF1.
+- **Length leakage.** Ciphertexts have the plaintext's length. Pad to a fixed
+  length if lengths are sensitive (Section 2).
+- **Timing.** `math/big` is not constant-time, so the running time can depend
+  on the values being processed. `crypto/aes` is constant-time only on
+  platforms with hardware AES (for example AES-NI or the ARMv8 crypto
+  extensions). Do not use this package where a local timing side channel is
+  a concern.
+- **Keys.** Use uniformly random 128-, 192-, or 256-bit keys, keep them
+  secret, and consider separate keys per data type or purpose. Key management
+  is out of scope.
+- **Validation.** This is not a CAVP/CMVP-validated module.
 
 ## Testing and provenance
 
