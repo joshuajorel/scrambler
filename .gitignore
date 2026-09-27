@@ -4,3 +4,5 @@
 *.test
 *.out
 /coverage*
+/tools/differential/fpe-rs/target/
+__pycache__/
