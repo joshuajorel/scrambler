@@ -114,7 +114,6 @@ type Policy struct {
 	cipher            *ff1.Cipher
 	fingerprint       string
 	layout            *compiledLayout
-	inputWidth        int
 }
 
 // Compile validates a policy and expands a caller-supplied AES key once.
@@ -153,7 +152,7 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 	var c *ff1.Cipher
 	var layout *compiledLayout
 	var err error
-	inputWidth := spec.Width
+	width := spec.Width
 	if spec.Layout != nil {
 		if spec.Width != 0 || spec.Alphabet != "" {
 			return nil, fmt.Errorf("%w: structured policies must leave Width and Alphabet unset", ErrInvalidSpec)
@@ -162,7 +161,7 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 		if err != nil {
 			return nil, err
 		}
-		inputWidth = layout.width
+		width = layout.width
 	} else {
 		alpha, alphaErr := ff1.NewAlphabet(spec.Alphabet)
 		if alphaErr != nil {
@@ -175,8 +174,8 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 		}
 	}
 	p := &Policy{domainID: spec.DomainID, version: spec.Version, scope: spec.Scope,
-		empty: spec.Empty, aliases: spec.Aliases, width: spec.Width,
-		canonicalize: canon, cipher: c, layout: layout, inputWidth: inputWidth}
+		empty: spec.Empty, aliases: spec.Aliases, width: width,
+		canonicalize: canon, cipher: c, layout: layout}
 	p.fingerprint = policyFingerprint(spec, ref, canonID)
 	return p, nil
 }
@@ -205,7 +204,7 @@ func (p *Policy) Mask(raw string, ctx Context) (string, error) {
 		}
 		return "", ErrEmptyInput
 	}
-	if len(raw) > p.inputWidth*utf8.UTFMax || !utf8.ValidString(raw) {
+	if len(raw) > p.width*utf8.UTFMax || !utf8.ValidString(raw) {
 		return "", ErrInvalidInput
 	}
 	canonical, err := p.canonicalize(raw)
@@ -215,8 +214,8 @@ func (p *Policy) Mask(raw string, ctx Context) (string, error) {
 	if p.aliases == RejectAliases && canonical != raw {
 		return "", ErrCanonicalCollision
 	}
-	if len(canonical) > p.inputWidth*utf8.UTFMax || !utf8.ValidString(canonical) ||
-		utf8.RuneCountInString(canonical) != p.inputWidth {
+	if len(canonical) > p.width*utf8.UTFMax || !utf8.ValidString(canonical) ||
+		utf8.RuneCountInString(canonical) != p.width {
 		return "", ErrInvalidInput
 	}
 	if p.layout != nil {

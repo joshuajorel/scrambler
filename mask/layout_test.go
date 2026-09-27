@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
 	"os"
 	"os/exec"
 	"strings"
@@ -79,9 +78,16 @@ func TestStructuredFormatsAndRoundTrips(t *testing.T) {
 			if name == "card" && after[15] != luhnCheck(after[:15]) {
 				t.Fatalf("masked card has invalid Luhn digit: %q", out)
 			}
-			originalRank := rankLayout(p.layout, tc.input)
-			maskedRank := rankLayout(p.layout, out)
-			tweak, _ := p.tweak(Context{})
+			base, _ := p.tweak(Context{})
+			originalRank, tweak, err := p.layout.parse([]rune(tc.input), base)
+			if err != nil {
+				t.Fatal(err)
+			}
+			base, _ = p.tweak(Context{})
+			maskedRank, maskedTweak, err := p.layout.parse([]rune(out), base)
+			if err != nil || string(maskedTweak) != string(tweak) {
+				t.Fatalf("masked value changed clear tweak context: %v", err)
+			}
 			recovered, err := p.layout.permute(maskedRank, p.cipher, tweak, true)
 			if err != nil || recovered.Cmp(originalRank) != 0 {
 				t.Fatalf("internal permutation round trip: %v", err)
@@ -90,20 +96,56 @@ func TestStructuredFormatsAndRoundTrips(t *testing.T) {
 	}
 }
 
-func rankLayout(l *compiledLayout, raw string) *big.Int {
-	rank := new(big.Int)
-	runes := []rune(raw)
-	at := 0
-	for _, part := range l.parts {
-		if part.kind == EncryptedPart {
-			for _, r := range runes[at : at+part.width] {
-				rank.Mul(rank, big.NewInt(int64(len(part.symbols))))
-				rank.Add(rank, big.NewInt(int64(part.lookup[r])))
-			}
-		}
-		at += part.width
+func TestStructuredClearTextBindsTweak(t *testing.T) {
+	card, err := Compile(structuredSpecs()["card"].spec, testRef, testKey)
+	if err != nil {
+		t.Fatal(err)
 	}
-	return rank
+	var middles []string
+	for _, bin := range []string{"411111", "550000"} {
+		payload := []rune(bin + "123456789")
+		input := string(append(payload, luhnCheck(payload)))
+		out, err := card.Mask(input, Context{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if out[:6] != bin {
+			t.Fatalf("retained prefix changed: %q -> %q", input, out)
+		}
+		middles = append(middles, out[6:15])
+	}
+	if middles[0] == middles[1] {
+		t.Fatalf("different retained prefixes share masked middle digits %q", middles[0])
+	}
+
+	var letters []string
+	for _, shape := range []struct {
+		first, second int
+		input         string
+	}{
+		{3, 6, "ava.nguyen.000001@example.test"},
+		{4, 5, "avan.guyen.000001@example.test"},
+	} {
+		p, err := Compile(Spec{DomainID: "email-local-len-15", Version: "v1", Layout: []Part{
+			{Kind: EncryptedPart, Width: shape.first, Alphabet: lower},
+			{Kind: LiteralPart, Literal: "."},
+			{Kind: EncryptedPart, Width: shape.second, Alphabet: lower},
+			{Kind: LiteralPart, Literal: "."},
+			{Kind: EncryptedPart, Width: 6, Alphabet: digits},
+			{Kind: LiteralPart, Literal: "@example.test"},
+		}}, testRef, testKey)
+		if err != nil {
+			t.Fatal(err)
+		}
+		out, err := p.Mask(shape.input, Context{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		letters = append(letters, strings.ReplaceAll(out[:17], ".", ""))
+	}
+	if letters[0] == letters[1] {
+		t.Fatalf("different separator positions share masked local part %q", letters[0])
+	}
 }
 
 func TestStructuredBindingsAndNoCollisions(t *testing.T) {
@@ -154,8 +196,12 @@ func TestStructuredPowerOfTwoDomain(t *testing.T) {
 	if err != nil || len(output) != len(input) || output[0] != 'B' {
 		t.Fatalf("binary layout: %q %v", output, err)
 	}
-	tweak, _ := p.tweak(Context{})
-	recovered, err := p.layout.permute(rankLayout(p.layout, output), p.cipher, tweak, true)
+	base, _ := p.tweak(Context{})
+	rank, tweak, err := p.layout.parse([]rune(output), base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	recovered, err := p.layout.permute(rank, p.cipher, tweak, true)
 	if err != nil || recovered.Sign() != 0 {
 		t.Fatalf("binary round trip: %v", err)
 	}
@@ -183,7 +229,7 @@ func TestStructuredRejections(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := Compile(Spec{DomainID: "invalid", Version: "v1", Layout: tc.parts}, testRef, testKey)
-			if !errors.Is(err, tc.want) {
+			if !errors.Is(err, ErrInvalidSpec) || !errors.Is(err, tc.want) {
 				t.Fatalf("got %v, want %v", err, tc.want)
 			}
 		})
@@ -219,7 +265,7 @@ func TestStructuredRejections(t *testing.T) {
 	shortEmail := Spec{DomainID: "email-local-len-1", Version: "v1", Layout: []Part{
 		{Kind: EncryptedPart, Width: 1, Alphabet: lower}, {Kind: LiteralPart, Literal: "@example.test"},
 	}}
-	if _, err := Compile(shortEmail, testRef, testKey); !errors.Is(err, ff1.ErrDomainTooSmall) {
+	if _, err := Compile(shortEmail, testRef, testKey); !errors.Is(err, ErrInvalidSpec) || !errors.Is(err, ff1.ErrDomainTooSmall) {
 		t.Fatalf("short email domain accepted: %v", err)
 	}
 }

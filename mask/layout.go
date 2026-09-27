@@ -1,6 +1,7 @@
 package mask
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math/big"
 	"unicode/utf8"
@@ -21,7 +22,8 @@ const (
 
 // Part describes one fixed-width piece of a structured value. LiteralPart
 // copies Literal exactly. EncryptedPart and RetainedPart require Width and an
-// ordered Alphabet; retained characters are validated and copied. LuhnDigit
+// ordered Alphabet; retained characters are validated and copied. Literal and
+// retained text, with its position, is bound into the tweak. LuhnDigit
 // consumes one digit and is recomputed after masking.
 type Part struct {
 	Kind     PartKind
@@ -62,6 +64,7 @@ func compileLayout(parts []Part, key []byte, maxTweak int) (*compiledLayout, *ff
 			}
 			cp.literal = []rune(part.Literal)
 			cp.width = len(cp.literal)
+			maxTweak += 8 + len(part.Literal)
 		case EncryptedPart, RetainedPart:
 			if part.Literal != "" || part.Width < 1 || part.Width > maxWidth {
 				return nil, nil, fmt.Errorf("%w: invalid segment part %d", ErrInvalidSpec, i)
@@ -81,6 +84,8 @@ func compileLayout(parts []Part, key []byte, maxTweak int) (*compiledLayout, *ff
 				for j := 0; j < part.Width; j++ {
 					l.domain.Mul(l.domain, radix)
 				}
+			} else {
+				maxTweak += 8 + part.Width*utf8.UTFMax
 			}
 		case LuhnDigit:
 			if check || i != len(parts)-1 || part.Literal != "" || part.Alphabet != "" || part.Width != 0 {
@@ -98,7 +103,7 @@ func compileLayout(parts []Part, key []byte, maxTweak int) (*compiledLayout, *ff
 		l.parts = append(l.parts, cp)
 	}
 	if l.domain.Cmp(million) < 0 {
-		return nil, nil, fmt.Errorf("%w: combined encrypted domain below one million", ff1.ErrDomainTooSmall)
+		return nil, nil, fmt.Errorf("%w: %w: combined encrypted domain below one million", ErrInvalidSpec, ff1.ErrDomainTooSmall)
 	}
 	if check {
 		for _, part := range l.parts[:len(l.parts)-1] {
@@ -133,38 +138,9 @@ func compileLayout(parts []Part, key []byte, maxTweak int) (*compiledLayout, *ff
 func (p *Policy) maskLayout(raw string, tweak []byte) (string, error) {
 	l := p.layout
 	runes := []rune(raw)
-	position := 0
-	rank := new(big.Int)
-	var precheck []rune
-	for _, part := range l.parts {
-		piece := runes[position : position+part.width]
-		position += part.width
-		switch part.kind {
-		case LiteralPart:
-			for i, r := range part.literal {
-				if piece[i] != r {
-					return "", ErrInvalidInput
-				}
-			}
-		case EncryptedPart, RetainedPart:
-			for _, r := range piece {
-				digit, ok := part.lookup[r]
-				if !ok {
-					return "", ErrInvalidInput
-				}
-				if part.kind == EncryptedPart {
-					rank.Mul(rank, big.NewInt(int64(len(part.symbols))))
-					rank.Add(rank, big.NewInt(int64(digit)))
-				}
-			}
-		case LuhnDigit:
-			if piece[0] != luhnCheck(precheck) {
-				return "", ErrInvalidInput
-			}
-		}
-		if part.kind != LuhnDigit {
-			precheck = append(precheck, piece...)
-		}
+	rank, tweak, err := l.parse(runes, tweak)
+	if err != nil {
+		return "", err
 	}
 	permuted, err := l.permute(rank, p.cipher, tweak, false)
 	if err != nil {
@@ -186,7 +162,7 @@ func (p *Policy) maskLayout(raw string, tweak []byte) (string, error) {
 		}
 	}
 	result := make([]rune, 0, l.width)
-	position = 0
+	position := 0
 	for i, part := range l.parts {
 		piece := runes[position : position+part.width]
 		position += part.width
@@ -200,6 +176,49 @@ func (p *Policy) maskLayout(raw string, tweak []byte) (string, error) {
 		}
 	}
 	return string(result), nil
+}
+
+// parse validates runes against the layout and ranks the encrypted positions.
+// It appends the position and text of each literal and retained part to tweak.
+func (l *compiledLayout) parse(runes []rune, tweak []byte) (*big.Int, []byte, error) {
+	position := 0
+	rank := new(big.Int)
+	var precheck []rune
+	for _, part := range l.parts {
+		piece := runes[position : position+part.width]
+		switch part.kind {
+		case LiteralPart:
+			for i, r := range part.literal {
+				if piece[i] != r {
+					return nil, nil, ErrInvalidInput
+				}
+			}
+		case EncryptedPart, RetainedPart:
+			for _, r := range piece {
+				digit, ok := part.lookup[r]
+				if !ok {
+					return nil, nil, ErrInvalidInput
+				}
+				if part.kind == EncryptedPart {
+					rank.Mul(rank, big.NewInt(int64(len(part.symbols))))
+					rank.Add(rank, big.NewInt(int64(digit)))
+				}
+			}
+		case LuhnDigit:
+			if piece[0] != luhnCheck(precheck) {
+				return nil, nil, ErrInvalidInput
+			}
+		}
+		if part.kind == LiteralPart || part.kind == RetainedPart {
+			tweak = binary.BigEndian.AppendUint32(tweak, uint32(position))
+			tweak = appendField(tweak, string(piece))
+		}
+		if part.kind != LuhnDigit {
+			precheck = append(precheck, piece...)
+		}
+		position += part.width
+	}
+	return rank, tweak, nil
 }
 
 func (l *compiledLayout) permute(rank *big.Int, c *ff1.Cipher, tweak []byte, inverse bool) (*big.Int, error) {

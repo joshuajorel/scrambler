@@ -222,6 +222,15 @@ a binary domain and cycle walking to permute exactly that combined domain.
 The layout, including each literal, width, alphabet order, and check-digit
 rule, enters the policy fingerprint.
 
+Literal and retained parts are bound into the tweak: after the plain policy
+fields, the tweak appends each such part's rune position and its actual
+text, length-prefixed. Values that differ only in clear text therefore mask
+their encrypted positions differently. Two cards with different first six
+digits and the same middle nine do not share masked middle digits, and two
+email layouts with separators in different positions do not share masked
+letters. The check digit is not bound; it is recomputed. Plain policies'
+tweaks are unchanged.
+
 ```go
 customer, err := mask.Compile(mask.Spec{
 	DomainID: "customer-number", Version: "v1", Scope: mask.JoinDomain,
