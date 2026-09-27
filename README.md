@@ -212,9 +212,46 @@ join records, and count repeated values. Masking is pseudonymization, not
 anonymization. Keep keys and masking access controlled, and do not treat a
 masked copy as public data.
 
-The package currently handles fixed-width strings only. Structured formats
-such as separators, prefixes, and check digits need separate policies and are
-not supported by this stage.
+Structured policies use `Spec.Layout` instead of `Alphabet` and `Width`. A
+layout is a sequence of exact literals, encrypted segments, validated but
+retained segments, and optionally a final Luhn digit. Every encrypted position
+is combined into one domain, even across separators or different alphabets.
+The product of their alphabet sizes must be at least 1,000,000; retained
+characters and the check digit do not count. The implementation uses FF1 over
+a binary domain and cycle walking to permute exactly that combined domain.
+The layout, including each literal, width, alphabet order, and check-digit
+rule, enters the policy fingerprint.
+
+```go
+customer, err := mask.Compile(mask.Spec{
+	DomainID: "customer-number", Version: "v1", Scope: mask.JoinDomain,
+	Layout: []mask.Part{
+		{Kind: mask.LiteralPart, Literal: "C"},
+		{Kind: mask.EncryptedPart, Width: 6, Alphabet: "0123456789"},
+	},
+}, mask.KeyRef{ID: "customer-key", Version: "2026-09"}, key)
+if err != nil { ... }
+masked, err := customer.Mask("C000123", mask.Context{})
+// "C" stays fixed; the six digits have exactly 10^6 possible values.
+```
+
+The same pieces express these other fixed formats:
+
+| Format | Layout | Example input |
+|---|---|---|
+| Card | 6 retained digits, 9 encrypted digits, final `LuhnDigit` | `4111111111111111` |
+| US phone | `+1-`, 3 encrypted digits, `-`, 3 encrypted digits, `-`, 4 encrypted digits | `+1-202-555-0001` |
+| Email local part | 3 encrypted lowercase letters, `.`, 6 encrypted lowercase letters, `.`, 6 encrypted digits, `@example.test` | `ava.nguyen.000001@example.test` |
+
+For the card, the first six digits are checked against their declared
+alphabet and copied; the incoming Luhn digit must be valid, and a new digit
+is calculated from the masked payload. `LuhnDigit` requires an all-digit
+payload and must be the last part. Literal text must match exactly, and all
+segment widths count Unicode runes. Malformed values return errors. A
+different email local-part length needs a separate fixed layout and domain ID;
+short lengths with a combined domain below one million are rejected. These
+policies do not parse arbitrary email syntax or provide a regex language.
+Bind each location that represents the same business key to the same policy.
 
 The rest of this section describes a manual recipe that calls `ff1` directly.
 Its tweak encoding differs from the `mask` package's, so the two produce
