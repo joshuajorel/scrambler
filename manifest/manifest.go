@@ -3,7 +3,6 @@
 package manifest
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -499,9 +498,4 @@ func (d *Detector) check(s *Set, row map[string]any) error {
 		d.seen[id][fmt.Sprint(v)] = struct{}{}
 	}
 	return nil
-}
-
-// LoadBytes is a convenience for embedded manifests.
-func LoadBytes(data []byte, keys map[mask.KeyRef][]byte) (*Set, error) {
-	return Load(bytes.NewReader(data), keys)
 }

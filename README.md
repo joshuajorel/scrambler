@@ -305,10 +305,11 @@ with synthetic in-memory rows. A driver adapter should turn its database
 values into these exact Go types and preserve SQL `NULL` as `nil`.
 
 ```go
-manifestJSON, err := os.ReadFile("manifest/testdata/banking.json")
+manifestFile, err := os.Open("manifest/testdata/banking.json")
 if err != nil { ... }
+defer manifestFile.Close()
 keys := resolveVersionedKeys() // map[mask.KeyRef][]byte; all references
-set, err := manifest.LoadBytes(manifestJSON, keys)
+set, err := manifest.Load(manifestFile, keys)
 if err != nil { ... }
 var duplicates manifest.Detector // share across the whole target dataset
 for nextRow() {
