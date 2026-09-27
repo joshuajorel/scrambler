@@ -50,6 +50,7 @@ func TestACVP(t *testing.T) {
 
 	cases := 0
 	for _, g := range f.TestGroups {
+		cases += len(g.Tests)
 		t.Run(fmt.Sprintf("tg%d", g.TgID), func(t *testing.T) {
 			if g.TestType != "AFT" {
 				t.Fatalf("unsupported test type %q", g.TestType)
@@ -59,7 +60,6 @@ func TestACVP(t *testing.T) {
 				t.Fatalf("alphabet %q has radix %d, group says %d", g.Alphabet, alpha.Radix(), g.Radix)
 			}
 			for _, tc := range g.Tests {
-				cases++
 				t.Run(fmt.Sprintf("tc%d", tc.TcID), func(t *testing.T) {
 					key, tweak := mustHex(t, tc.Key), mustHex(t, tc.Tweak)
 					if len(key)*8 != g.KeyLen || len(tweak)*8 != tc.TweakLen {
@@ -91,7 +91,7 @@ func TestACVP(t *testing.T) {
 		})
 	}
 	if len(f.TestGroups) != acvpGroups || cases != acvpCases {
-		t.Errorf("ran %d groups / %d cases, want %d / %d", len(f.TestGroups), cases, acvpGroups, acvpCases)
+		t.Errorf("vector file has %d groups / %d cases, want %d / %d", len(f.TestGroups), cases, acvpGroups, acvpCases)
 	}
 }
 

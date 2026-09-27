@@ -63,7 +63,7 @@ func TestREADMECounts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rows := regexp.MustCompile(`(?m)^\| (aes_ff1_\w+)_test\.json \| [0-9a-f]{40} \| (\d+) \|$`).FindAllStringSubmatch(string(data), -1)
+	rows := regexp.MustCompile(`(?m)^\| (aes_ff1_\w+)_test\.json \| [0-9a-f]{40} \| (\d+) \|\r?$`).FindAllStringSubmatch(string(data), -1)
 	if len(rows) != len(wycheproofCounts) {
 		t.Errorf("Wycheproof README lists %d files, want %d", len(rows), len(wycheproofCounts))
 	}
