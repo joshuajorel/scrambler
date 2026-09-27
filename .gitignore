@@ -1,0 +1,6 @@
+.lavish/
+.worktrees/
+.polly/
+*.test
+*.out
+/coverage*
