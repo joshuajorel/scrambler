@@ -388,11 +388,12 @@ declared column of one table, passes `nil` through unchanged and reports its
 binding ID, and fails on malformed or over-width values. It passes each masked
 binding only the context fields its policy scope uses, so one row can mix
 `join_domain`, `tenant_domain`, and `record` columns. A `tenant_domain`
-binding fails without a tenant ID, and a `record` binding without a record ID. A `Detector` rejects
-repeated masked outputs in columns marked `unique`; create a new one for each
-target dataset. It keeps prior outputs in memory, so a very large stream may
-need an application-owned database uniqueness check instead. The library
-does not coordinate transactions or writes across the three databases.
+binding fails without a tenant ID, and a `record` binding without a record
+ID. A `Detector` rejects repeated masked outputs in columns marked `unique`;
+create a new one for each target dataset. It keeps prior outputs in memory, so
+a very large stream may need an application-owned database uniqueness check
+instead. The library does not coordinate transactions or writes across the
+three databases.
 
 Policy fingerprints include the key reference label and version, but not key
 bytes. Thus two processes resolving one reference to different keys pass the
