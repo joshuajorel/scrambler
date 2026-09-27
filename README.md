@@ -1,17 +1,19 @@
 # scrambler
 
-scrambler is a Go library for masking sensitive production data before copying
-it to development or test environments. Its `mask` package uses NIST FF1
-format-preserving encryption to keep values in a declared format while making
-the same business key mask to the same value in every table, file, or service
-that carries it. This keeps foreign-key joins usable in masked copies.
+scrambler is a Go library for masking sensitive values with consistent,
+format-preserving pseudonyms. Its `mask` package uses NIST FF1 encryption so
+the same business key masks to the same value wherever it appears. This keeps
+foreign-key joins usable across masked tables, files, and services.
 
-Use it when you need consistent, fixed-width pseudonyms for identifiers. Do
-not use masked data as anonymous or public data: equal values remain linkable,
-and someone with the key can reverse them. FF1 also provides no authentication;
-use a separate integrity check if you need to detect tampering. The library is
-new and has not been independently audited. The NIST SP 800-38G Rev. 1 second
-public draft (February 2025) that it follows may change before publication.
+Consistent masking helps make data useful for development and testing, analytics
+and reporting, partner or vendor sharing, and demos and training while reducing
+exposure of sensitive fields. Use it when identifiers need a fixed format and
+references must remain intact. Masked data is not anonymous or public data:
+equal values remain linkable, and someone with the key can reverse them. FF1
+also provides no authentication; use a separate integrity check if you need to
+detect tampering. The library is new and has not been independently audited.
+The NIST SP 800-38G Rev. 1 second public draft (February 2025) that it follows
+may change before publication.
 
 ```sh
 go get github.com/joshuajorel/scrambler/mask
@@ -262,15 +264,15 @@ manifests. This remains an open design choice for the banking demo rollout.
 
 ## Operating guidance
 
-Keep keys and masking access in a controlled production-side service or key
-manager, outside the non-production environment. Whoever holds the key can
+Keep keys and masking access in a controlled service or key manager, separate
+from the people and systems that receive masked data. Whoever holds the key can
 reverse FF1 output, even though `mask` has no unmask method. Use uniformly
 random 128-, 192-, or 256-bit AES keys. Decide which users and jobs may call
 masking, and rate-limit and monitor endpoints: a small enumerable domain can
 be guessed even though its one-million-value minimum is enforced.
 
 Treat validation and masking errors as failures. Do not pass the original value
-through on error, since that would leak production data into a masked copy.
+through on error, since that would leak sensitive data into a masked copy.
 Define an explicit missing-value rule where needed and quarantine or reject
 malformed rows. Preserve the same representation and normalization across all
 systems that carry a business key.
@@ -285,7 +287,7 @@ Luhn digit or unkeyed checksum only detects accidental errors.
 ## Direct `ff1` API
 
 Use `ff1` when you need the lower-level engine or a format outside the fixed
-policy model. For production-to-non-production join keys, prefer `mask`: its
+policy model. For join keys shared across datasets, prefer `mask`: its
 policy and registry make the shared tweak and format explicit. A direct FF1
 join-key recipe uses a different tweak encoding from `mask`, so the two
 approaches produce different outputs and must not be mixed for one domain.
