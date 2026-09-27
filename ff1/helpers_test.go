@@ -2,9 +2,13 @@ package ff1_test
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"math/big"
+	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/joshuajorel/scrambler/ff1"
@@ -73,6 +77,17 @@ func mustAlphabet(t testing.TB, s string) ff1.Alphabet {
 	return a
 }
 
+func loadJSON(t testing.TB, path string, v any) {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, v); err != nil {
+		t.Fatalf("%s: %v", path, err)
+	}
+}
+
 // toNumerals maps each rune of s to its index in alphabet.
 func toNumerals(t testing.TB, alphabet, s string) []uint16 {
 	t.Helper()
@@ -95,6 +110,54 @@ func testKey(n int) []byte {
 		k[i] = byte(i*7 + 1)
 	}
 	return k
+}
+
+// rng is a small deterministic xorshift64* generator so tests are
+// reproducible without math/rand seeding concerns.
+type rng uint64
+
+func (r *rng) next() uint64 {
+	x := uint64(*r)
+	x ^= x >> 12
+	x ^= x << 25
+	x ^= x >> 27
+	*r = rng(x)
+	return x * 0x2545F4914F6CDD1D
+}
+
+// intn returns a value in [0, n).
+func (r *rng) intn(n int) int { return int(r.next() % uint64(n)) }
+
+func (r *rng) bytes(n int) []byte {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = byte(r.next())
+	}
+	return b
+}
+
+func (r *rng) numerals(n, radix int) []uint16 {
+	x := make([]uint16, n)
+	for i := range x {
+		x[i] = uint16(r.intn(radix))
+	}
+	return x
+}
+
+// domainOK reports whether radix^n >= 1,000,000, exactly.
+func domainOK(radix, n int) bool {
+	d := new(big.Int).Exp(big.NewInt(int64(radix)), big.NewInt(int64(n)), nil)
+	return d.Cmp(big.NewInt(ff1.MinDomainSize)) >= 0
+}
+
+// encodeWith maps numerals to the runes of alphabet.
+func encodeWith(alphabet string, x []uint16) string {
+	syms := []rune(alphabet)
+	var sb strings.Builder
+	for _, d := range x {
+		sb.WriteRune(syms[d])
+	}
+	return sb.String()
 }
 
 // defaultLimits returns the default (and largest accepted) input and tweak
