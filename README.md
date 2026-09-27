@@ -151,6 +151,76 @@ References are to NIST SP 800-38G Rev. 1, second public draft
 
 ### Deterministic masking of join keys across databases
 
+The `mask` package compiles a fixed-width policy for each logical data domain.
+It supplies a stable, versioned tweak encoding and a registry that holds one
+configuration per domain ID and rejects any different one, including a
+different policy version. Location names used in the registry never enter a
+join-domain tweak.
+
+```go
+key := ... // 16, 24, or 32 bytes from your key manager
+policy, err := mask.Compile(mask.Spec{
+	DomainID: "account-number", Version: "v1",
+	Alphabet: "0123456789", Width: 12, Scope: mask.JoinDomain,
+}, mask.KeyRef{ID: "accounts-key", Version: "2026-09"}, key)
+if err != nil { ... }
+
+var locations mask.Registry
+parent, err := locations.Bind("accounts.id", policy)
+if err != nil { ... }
+foreignKey, err := locations.Bind("orders.account_id", policy)
+if err != nil { ... }
+a, err := parent.Mask("000123456789", mask.Context{})
+if err != nil { ... }
+b, err := foreignKey.Mask("000123456789", mask.Context{})
+if err != nil { ... }
+// a == b, including across independent processes with the same policy and key.
+```
+
+Import `github.com/joshuajorel/scrambler/mask` for this example. A policy's
+`Fingerprint` is a stable digest of its declared rules and key reference; it
+does not contain key bytes. The caller must resolve the same versioned key
+reference to the same key in every process. Rotate a key with a new policy
+version. A registry accepts one version per domain ID, so every location bound
+in that registry moves to the new version together. Each process has its own
+registry and separate processes are not coordinated by it, so deploy a new
+version to every process that masks the domain together. The package exposes
+masking only; it has no unmask operation.
+
+`JoinDomain` is for business keys that must join across locations. Use
+`TenantDomain` only when cross-tenant joins are deliberately excluded, and
+`Record` when per-record variation is needed. The tweak uses length-prefixed
+domain ID, policy version, and the applicable logical context. It does not
+derive context from table or column names. For join keys, bind every parent
+and foreign-key location to the same compiled policy.
+
+Policies accept one exact symbol width and an ordered Unicode alphabet.
+Invalid symbols, wrong widths, malformed UTF-8, and oversized input are
+errors. FF1's minimum domain of one million values is enforced at compile
+time. Empty input is rejected by default; `PreserveEmpty` is an explicit
+missing-value rule and never encrypts the empty string. Custom canonicalizers
+need a stable ID that changes when their behavior changes. By default
+(`RejectAliases`) input must already be in canonical form, preventing two raw
+spellings from collapsing to one masked value without keeping process-local
+history. `AllowAliases` is an explicit opt-in to intentional aliasing: choose
+it only when a canonicalizer deliberately normalizes different representations
+of the same logical value, such as zero padding, so that they mask alike.
+
+**Equal canonical inputs producing equal outputs under one join-domain policy
+is intentional.** Anyone who sees the masked datasets can observe equality,
+join records, and count repeated values. Masking is pseudonymization, not
+anonymization. Keep keys and masking access controlled, and do not treat a
+masked copy as public data.
+
+The package currently handles fixed-width strings only. Structured formats
+such as separators, prefixes, and check digits need separate policies and are
+not supported by this stage.
+
+The rest of this section describes a manual recipe that calls `ff1` directly.
+Its tweak encoding differs from the `mask` package's, so the two produce
+different outputs for the same value and cannot be mixed for one domain: every
+location of a domain must use the same approach.
+
 A common use of FF1 is to pseudonymize an identifier, such as an account
 number, so that masked copies in different databases, services, or files can
 still be joined on the masked value. That needs every system to turn the same
