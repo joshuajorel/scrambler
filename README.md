@@ -262,6 +262,85 @@ short lengths with a combined domain below one million are rejected. These
 policies do not parse arbitrary email syntax or provide a regex language.
 Bind each location that represents the same business key to the same policy.
 
+### Shareable policy manifests and streaming rows
+
+The `manifest` package loads a versioned, non-secret JSON file. It compiles
+`mask` policies and registry bindings using key bytes supplied by the caller;
+the file contains only key reference IDs and versions. See
+[`manifest/testdata/banking.json`](manifest/testdata/banking.json) for a
+complete v1 example matching the private banking demo's actual tables:
+PostgreSQL `public.customers`, Oracle `BANK.ACCOUNTS`, and SQL Server
+`dbo.payments`. Names, holder name, dates of birth, and non-target columns
+are explicit `clear` bindings with a reason. There are no database drivers or
+KMS clients in this package.
+
+The top-level object has `version: 1`, `policies`, `bindings`, `edges`, and
+`goldens`. Each policy has one `domain`, policy `version`, `key` (`id` and
+`version`), `scope` (`join_domain`, `tenant_domain`, or `record`), and either
+`alphabet` plus `width` or `layout` parts (`literal`, `encrypted`, `retained`,
+`luhn`). Layout syntax follows `mask.Part`. One policy is allowed per domain;
+the manifest does not expose custom canonicalizers or aliasing. A binding
+identifies `database`, `schema`, `table`, `column`, and `mode`. Masked bindings
+also name `policy` and `codec` (`kind` and `width`); `unique: true` enables
+duplicate-output detection. Clear bindings have `reason` and no masking
+settings. Binding IDs are `database.schema.table.column`. Each `edge` names
+two binding IDs in `from` and `to`. Each golden pins one synthetic canonical
+`input`, its masked `output`, and policy `fingerprint` for a binding; an
+optional `context` supplies tenant or record tweak fields. Every policy needs
+at least one golden. Keep fixture inputs synthetic and safe to share.
+
+The three codecs have explicit storage contracts:
+
+| Codec | Input and output Go type | `width` | Conversion |
+|---|---|---|---|
+| `text` | `string` | Maximum UTF-8 bytes | Canonical string unchanged; rejects overflow. |
+| `blank_padded_text` | `string` | Exact UTF-8 byte width | Strips right-side ASCII spaces before masking and pads output back; rejects a policy whose output could end in a space. |
+| `zero_padded_numeric` | `int64` | Maximum decimal digits | Pads nonnegative input on the left to canonical width, then converts masked digits back to `int64`; at most 18 canonical digits are allowed. |
+
+The codec width is checked against **every possible output** of the policy,
+including retained and literal parts. Numeric codecs require an all-digit
+layout. The banking demo stores its join fields as `VARCHAR`/`VARCHAR2`, so
+its fixture uses `text`; the numeric and blank-padded codecs are also tested
+with synthetic in-memory rows. A driver adapter should turn its database
+values into these exact Go types and preserve SQL `NULL` as `nil`.
+
+```go
+manifestJSON, err := os.ReadFile("manifest/testdata/banking.json")
+if err != nil { ... }
+keys := resolveVersionedKeys() // map[mask.KeyRef][]byte; all references
+set, err := manifest.LoadBytes(manifestJSON, keys)
+if err != nil { ... }
+var duplicates manifest.Detector // share across the whole target dataset
+for nextRow() {
+    // Complete row keyed by IDs such as "postgresql.public.customers.email".
+    row := readRow()
+    masked, nulls, err := set.MaskRow(row, mask.Context{}, &duplicates)
+    if err != nil { ... } // binding ID appears in the diagnostic
+    reportNulls(nulls)
+    writeRow(masked)
+}
+```
+
+Load validates the full graph before masking: every masked binding resolves to
+one defined policy, all equality edges connect masked bindings of the same
+domain policy and version under `join_domain`, codec capacity covers all
+outputs, and golden values match the supplied key. `MaskRow` requires every
+declared column of one table, passes `nil` through unchanged and reports its
+binding ID, and fails on malformed or over-width values. A `Detector` rejects
+repeated masked outputs in columns marked `unique`; create a new one for each
+target dataset. It keeps prior outputs in memory, so a very large stream may
+need an application-owned database uniqueness check instead. The library
+does not coordinate transactions or writes across the three databases.
+
+Policy fingerprints include the key reference label and version, but not key
+bytes. Thus two processes resolving one reference to different keys pass the
+fingerprint divergence check. The required golden fixtures catch disagreement
+for their listed inputs when each process loads the manifest, but they are not
+a general key-consistency protocol. An optional one-way key check value could
+be added in a future format version; doing so would let holders compare key
+equality without sharing the key, while exposing equality of keys across
+manifests. This remains an open design choice for the banking demo rollout.
+
 The rest of this section describes a manual recipe that calls `ff1` directly.
 Its tweak encoding differs from the `mask` package's, so the two produce
 different outputs for the same value and cannot be mixed for one domain: every

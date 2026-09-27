@@ -1,0 +1,500 @@
+{
+  "version": 1,
+  "policies": [
+    {
+      "domain": "customer-number",
+      "version": "v1",
+      "key": {
+        "id": "demo-customer",
+        "version": "v1"
+      },
+      "scope": "join_domain",
+      "layout": [
+        {
+          "kind": "literal",
+          "literal": "C"
+        },
+        {
+          "kind": "encrypted",
+          "width": 6,
+          "alphabet": "0123456789"
+        }
+      ]
+    },
+    {
+      "domain": "national-id",
+      "version": "v1",
+      "key": {
+        "id": "demo-national",
+        "version": "v1"
+      },
+      "scope": "join_domain",
+      "alphabet": "0123456789",
+      "width": 9
+    },
+    {
+      "domain": "account-number",
+      "version": "v1",
+      "key": {
+        "id": "demo-account",
+        "version": "v1"
+      },
+      "scope": "join_domain",
+      "alphabet": "0123456789",
+      "width": 12
+    },
+    {
+      "domain": "card-number",
+      "version": "v1",
+      "key": {
+        "id": "demo-card",
+        "version": "v1"
+      },
+      "scope": "join_domain",
+      "layout": [
+        {
+          "kind": "retained",
+          "width": 6,
+          "alphabet": "0123456789"
+        },
+        {
+          "kind": "encrypted",
+          "width": 9,
+          "alphabet": "0123456789"
+        },
+        {
+          "kind": "luhn"
+        }
+      ]
+    },
+    {
+      "domain": "email-local-3-6-6",
+      "version": "v1",
+      "key": {
+        "id": "demo-email",
+        "version": "v1"
+      },
+      "scope": "join_domain",
+      "layout": [
+        {
+          "kind": "encrypted",
+          "width": 3,
+          "alphabet": "abcdefghijklmnopqrstuvwxyz"
+        },
+        {
+          "kind": "literal",
+          "literal": "."
+        },
+        {
+          "kind": "encrypted",
+          "width": 6,
+          "alphabet": "abcdefghijklmnopqrstuvwxyz"
+        },
+        {
+          "kind": "literal",
+          "literal": "."
+        },
+        {
+          "kind": "encrypted",
+          "width": 6,
+          "alphabet": "0123456789"
+        },
+        {
+          "kind": "literal",
+          "literal": "@example.test"
+        }
+      ]
+    },
+    {
+      "domain": "phone-us",
+      "version": "v1",
+      "key": {
+        "id": "demo-phone",
+        "version": "v1"
+      },
+      "scope": "join_domain",
+      "layout": [
+        {
+          "kind": "literal",
+          "literal": "+1-"
+        },
+        {
+          "kind": "encrypted",
+          "width": 3,
+          "alphabet": "0123456789"
+        },
+        {
+          "kind": "literal",
+          "literal": "-"
+        },
+        {
+          "kind": "encrypted",
+          "width": 3,
+          "alphabet": "0123456789"
+        },
+        {
+          "kind": "literal",
+          "literal": "-"
+        },
+        {
+          "kind": "encrypted",
+          "width": 4,
+          "alphabet": "0123456789"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "customer_number",
+      "mode": "mask",
+      "policy": "customer-number",
+      "codec": {
+        "kind": "text",
+        "width": 7
+      },
+      "unique": true
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "national_id",
+      "mode": "mask",
+      "policy": "national-id",
+      "codec": {
+        "kind": "text",
+        "width": 9
+      },
+      "unique": true
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "email",
+      "mode": "mask",
+      "policy": "email-local-3-6-6",
+      "codec": {
+        "kind": "text",
+        "width": 200
+      },
+      "unique": true
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "phone",
+      "mode": "mask",
+      "policy": "phone-us",
+      "codec": {
+        "kind": "text",
+        "width": 30
+      }
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "primary_account_number",
+      "mode": "mask",
+      "policy": "account-number",
+      "codec": {
+        "kind": "text",
+        "width": 12
+      },
+      "unique": true
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "primary_card_number",
+      "mode": "mask",
+      "policy": "card-number",
+      "codec": {
+        "kind": "text",
+        "width": 16
+      },
+      "unique": true
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "given_name",
+      "mode": "clear",
+      "reason": "deliberately unmasked in banking demo"
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "family_name",
+      "mode": "clear",
+      "reason": "deliberately unmasked in banking demo"
+    },
+    {
+      "database": "postgresql",
+      "schema": "public",
+      "table": "customers",
+      "column": "date_of_birth",
+      "mode": "clear",
+      "reason": "deliberately unmasked in banking demo"
+    },
+    {
+      "database": "oracle",
+      "schema": "BANK",
+      "table": "ACCOUNTS",
+      "column": "account_number",
+      "mode": "mask",
+      "policy": "account-number",
+      "codec": {
+        "kind": "text",
+        "width": 12
+      },
+      "unique": true
+    },
+    {
+      "database": "oracle",
+      "schema": "BANK",
+      "table": "ACCOUNTS",
+      "column": "customer_number",
+      "mode": "mask",
+      "policy": "customer-number",
+      "codec": {
+        "kind": "text",
+        "width": 7
+      }
+    },
+    {
+      "database": "oracle",
+      "schema": "BANK",
+      "table": "ACCOUNTS",
+      "column": "customer_national_id",
+      "mode": "mask",
+      "policy": "national-id",
+      "codec": {
+        "kind": "text",
+        "width": 9
+      }
+    },
+    {
+      "database": "oracle",
+      "schema": "BANK",
+      "table": "ACCOUNTS",
+      "column": "card_number",
+      "mode": "mask",
+      "policy": "card-number",
+      "codec": {
+        "kind": "text",
+        "width": 16
+      },
+      "unique": true
+    },
+    {
+      "database": "oracle",
+      "schema": "BANK",
+      "table": "ACCOUNTS",
+      "column": "holder_name",
+      "mode": "clear",
+      "reason": "deliberately unmasked in banking demo"
+    },
+    {
+      "database": "oracle",
+      "schema": "BANK",
+      "table": "ACCOUNTS",
+      "column": "balance_cents",
+      "mode": "clear",
+      "reason": "outside demo masking scope"
+    },
+    {
+      "database": "oracle",
+      "schema": "BANK",
+      "table": "ACCOUNTS",
+      "column": "status",
+      "mode": "clear",
+      "reason": "outside demo masking scope"
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "customer_number",
+      "mode": "mask",
+      "policy": "customer-number",
+      "codec": {
+        "kind": "text",
+        "width": 7
+      }
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "account_number",
+      "mode": "mask",
+      "policy": "account-number",
+      "codec": {
+        "kind": "text",
+        "width": 12
+      }
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "card_number",
+      "mode": "mask",
+      "policy": "card-number",
+      "codec": {
+        "kind": "text",
+        "width": 16
+      }
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "payer_national_id",
+      "mode": "mask",
+      "policy": "national-id",
+      "codec": {
+        "kind": "text",
+        "width": 9
+      }
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "payer_email",
+      "mode": "mask",
+      "policy": "email-local-3-6-6",
+      "codec": {
+        "kind": "text",
+        "width": 200
+      }
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "beneficiary_account_number",
+      "mode": "mask",
+      "policy": "account-number",
+      "codec": {
+        "kind": "text",
+        "width": 12
+      }
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "payment_reference",
+      "mode": "clear",
+      "reason": "outside demo masking scope"
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "amount_cents",
+      "mode": "clear",
+      "reason": "outside demo masking scope"
+    },
+    {
+      "database": "sqlserver",
+      "schema": "dbo",
+      "table": "payments",
+      "column": "status",
+      "mode": "clear",
+      "reason": "outside demo masking scope"
+    }
+  ],
+  "edges": [
+    {
+      "from": "postgresql.public.customers.customer_number",
+      "to": "oracle.BANK.ACCOUNTS.customer_number"
+    },
+    {
+      "from": "oracle.BANK.ACCOUNTS.customer_number",
+      "to": "sqlserver.dbo.payments.customer_number"
+    },
+    {
+      "from": "postgresql.public.customers.national_id",
+      "to": "oracle.BANK.ACCOUNTS.customer_national_id"
+    },
+    {
+      "from": "oracle.BANK.ACCOUNTS.customer_national_id",
+      "to": "sqlserver.dbo.payments.payer_national_id"
+    },
+    {
+      "from": "postgresql.public.customers.primary_account_number",
+      "to": "oracle.BANK.ACCOUNTS.account_number"
+    },
+    {
+      "from": "oracle.BANK.ACCOUNTS.account_number",
+      "to": "sqlserver.dbo.payments.account_number"
+    },
+    {
+      "from": "oracle.BANK.ACCOUNTS.account_number",
+      "to": "sqlserver.dbo.payments.beneficiary_account_number"
+    },
+    {
+      "from": "postgresql.public.customers.primary_card_number",
+      "to": "oracle.BANK.ACCOUNTS.card_number"
+    },
+    {
+      "from": "oracle.BANK.ACCOUNTS.card_number",
+      "to": "sqlserver.dbo.payments.card_number"
+    },
+    {
+      "from": "postgresql.public.customers.email",
+      "to": "sqlserver.dbo.payments.payer_email"
+    }
+  ],
+  "goldens": [
+    {
+      "binding": "postgresql.public.customers.customer_number",
+      "input": "C000001",
+      "output": "C519952",
+      "fingerprint": "35ceedb7febd66d70ce39a49a7d5820b523a3f4cba406fec800674c2c1171426"
+    },
+    {
+      "binding": "postgresql.public.customers.national_id",
+      "input": "100000001",
+      "output": "296817889",
+      "fingerprint": "7e42c2da1c3be9aeff7d6779e2a267361d780d822a94e0d4d808313cf37c94cc"
+    },
+    {
+      "binding": "postgresql.public.customers.primary_account_number",
+      "input": "700000000002",
+      "output": "096897026892",
+      "fingerprint": "723dd0b82568ed2f7a752cf195ece1e1095d9489b3e5372896258a45ec87dd36"
+    },
+    {
+      "binding": "postgresql.public.customers.primary_card_number",
+      "input": "4000000000000028",
+      "output": "4000003642960104",
+      "fingerprint": "82e187f74c159afbf58058f6d15a0208fdaf9b3d10d70a3f93c91182b6fbbb0e"
+    },
+    {
+      "binding": "postgresql.public.customers.email",
+      "input": "ava.nguyen.000001@example.test",
+      "output": "nek.ghfgae.178140@example.test",
+      "fingerprint": "97e6e74d6d62e87ba402b7be36f411bf7dd17cd6fb1751141abe4d88fce4f4c6"
+    },
+    {
+      "binding": "postgresql.public.customers.phone",
+      "input": "+1-202-555-0001",
+      "output": "+1-867-378-9577",
+      "fingerprint": "72769d20f9317b345113298ccc1d12c7c5bb375e937221a80663356926688dad"
+    }
+  ]
+}
