@@ -38,9 +38,25 @@ jobs:
           fi
       - name: go test -race
         run: go test -race -count=1 ./...
+
+  # Run the whole suite as a 32-bit program (amd64 runners execute 386
+  # binaries natively), where int is 32 bits and the length limits shrink.
+  test-386:
+    name: test (GOARCH=386)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
       - name: go test (GOARCH=386)
-        if: matrix.go == '1.26.x'
-        run: GOARCH=386 go test -count=1 ./...
+        env:
+          GOARCH: "386"
+        run: |
+          go env GOOS GOARCH
+          # Logs "int is 32 bits" and the 32-bit length limits.
+          go test -count=1 -v -run '^(TestLengthLimits|TestLayoutWithinLimits|TestCheckParamsAtLimits)$' ./ff1
+          go test -count=1 ./...
 
   fuzz:
     name: fuzz (${{ matrix.target }})
@@ -54,8 +70,15 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+      # Steps are gated on their inputs (not the job), so that the job reports
+      # success at every layer of a stacked change, including ones that
+      # predate the fuzz targets.
       - name: go test -fuzz
+        if: hashFiles('ff1/fuzz_test.go') != ''
         run: go test -run '^$' -fuzz '^${{ matrix.target }}$' -fuzztime 30s ./ff1
+      - name: no fuzz targets yet
+        if: hashFiles('ff1/fuzz_test.go') == ''
+        run: echo "ff1/fuzz_test.go is not in this tree; nothing to fuzz"
 
   lint:
     runs-on: ubuntu-latest
@@ -71,25 +94,34 @@ jobs:
           version: v2.14.0
 
   # Rebuild every generated vector file from its pinned source and check that
-  # the committed copies match.
+  # the committed copies match. Each step runs only if its tool is in the
+  # tree, so the job succeeds at every layer of a stacked change.
   vectors:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          distribution: temurin
-          java-version: "21"
+      - name: NIST ACVP file (tools/acvp)
+        if: hashFiles('tools/acvp/fetch.sh') != ''
+        run: |
+          sh tools/acvp/fetch.sh
+          git diff --exit-code ff1/testdata/acvp
+      - name: Wycheproof files (tools/wycheproof)
+        if: hashFiles('tools/wycheproof/fetch.sh') != ''
+        run: |
+          sh tools/wycheproof/fetch.sh
+          git diff --exit-code ff1/testdata/wycheproof
       - name: third-party vectors (tools/extract_vectors)
+        if: hashFiles('tools/extract_vectors/extract.py') != ''
         run: |
           python3 tools/extract_vectors/extract.py
           git diff --exit-code ff1/testdata/thirdparty_vectors.json
-      - name: NIST ACVP and Wycheproof files
-        run: |
-          sh tools/acvp/fetch.sh
-          sh tools/wycheproof/fetch.sh
-          git diff --exit-code ff1/testdata/acvp ff1/testdata/wycheproof
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        if: hashFiles('tools/differential/generate.sh') != ''
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: differential vectors (tools/differential)
+        if: hashFiles('tools/differential/generate.sh') != ''
         run: |
           mkdir -p "$RUNNER_TEMP/committed"
           cp ff1/testdata/differential_*.json "$RUNNER_TEMP/committed/"

@@ -57,7 +57,7 @@ func New(key []byte, alphabet Alphabet, opts ...Option) (*Cipher, error) {
 		return nil, fmt.Errorf("%w: zero-value or invalid Alphabet", ErrInvalidRadix)
 	}
 
-	cfg := config{maxLen: defaultMaxLen, maxTweakLen: defaultMaxLen}
+	cfg := config{maxLen: maxLenLimit, maxTweakLen: maxTweakLenLimit}
 	for _, opt := range opts {
 		if opt == nil {
 			continue
@@ -122,21 +122,44 @@ func chunkSize(radix uint64) (int, uint64) {
 	return k, p
 }
 
-// byteLengths returns the byte lengths of steps 3 and 4 of the FF1
-// algorithms, given radixV = radix^v:
-//
-//	b = ceil(BITLEN(radix^v - 1) / 8), the byte length of NUM_radix(B) in Q;
-//	d = 4*ceil(b/4) + 4, the byte length of S.
-//
-// BITLEN(radix^v - 1) = ceil(v * log2(radix)), so b is exactly the
-// b = ceil(ceil(v * LOG(radix)) / 8) of the original SP 800-38G, computed
-// without floating point.
-func byteLengths(radixV *big.Int) (b, d int) {
+// bitLen returns BITLEN(radix^v - 1) given radixV = radix^v.
+// BITLEN(radix^v - 1) = ceil(v * log2(radix)), computed without floating
+// point.
+func bitLen(radixV *big.Int) int {
 	var m big.Int
 	m.Sub(radixV, big.NewInt(1))
-	b = (m.BitLen() + 7) / 8
-	d = 4*((b+3)/4) + 4
-	return b, d
+	return m.BitLen()
+}
+
+// layout holds the byte lengths FF1 derives from the tweak length t and
+// BITLEN(radix^v - 1).
+type layout struct {
+	b      int // step 3: b = ceil(BITLEN(radix^v - 1) / 8), the length of [NUM_radix(B)]^b
+	d      int // step 4: d = 4*ceil(b/4) + 4, the length of S
+	pad    int // (-t-b-1) mod 16, the zero padding in Q
+	prefix int // whole blocks of T || [0]^pad, MACed once per call
+	tail   int // len(Q) - prefix: rest of T || [0]^pad, [i]^1, [NUM_radix(B)]^b
+	sLen   int // ceil(d/16) whole blocks holding S
+}
+
+// layoutFor computes the layout for a t-byte tweak and
+// bits = BITLEN(radix^v - 1). Callers must have checked t and n against
+// maxTweakLenLimit and maxLenLimit (checkParams does), which bounds
+// bits <= 16v and keeps every value here, including t+b+1 and len(Q), within
+// an int on every platform; see lengthLimits.
+func layoutFor(t, bits int) layout {
+	b := (bits + 7) / 8
+	d := 4*((b+3)/4) + 4
+	pad := (16 - (t+b+1)%16) % 16 // t+b+1 >= 0, so this is (-t-b-1) mod 16
+	prefix := (t + pad) / 16 * 16
+	return layout{
+		b:      b,
+		d:      d,
+		pad:    pad,
+		prefix: prefix,
+		tail:   t + pad - prefix + 1 + b,
+		sLen:   (d + 15) / 16 * 16,
+	}
 }
 
 // buildP returns the block P of step 5 of the FF1 algorithms:
@@ -239,8 +262,10 @@ func (c *Cipher) cryptString(s string, tweak []byte, encrypt bool) (string, erro
 	if c.alpha.kind == kindRadixOnly {
 		return "", ErrNoSymbols
 	}
+	// Check the length (counted without allocating) and the tweak before
+	// decode allocates n numerals.
 	n := c.alpha.symbolCount(s)
-	if err := c.checkParams(n, tweak); err != nil {
+	if err := c.checkParams(n, len(tweak)); err != nil {
 		return "", err
 	}
 	x, err := c.alpha.decode(s, n)
@@ -250,15 +275,18 @@ func (c *Cipher) cryptString(s string, tweak []byte, encrypt bool) (string, erro
 	return c.alpha.encode(c.crypt(x, tweak, encrypt)), nil
 }
 
-func (c *Cipher) checkParams(n int, tweak []byte) error {
+// checkParams validates an input of n symbols and a t-byte tweak against
+// the cipher's limits. Every length crypt handles passes through here, and
+// the limits never exceed maxLenLimit and maxTweakLenLimit.
+func (c *Cipher) checkParams(n, t int) error {
 	if n < c.domainMinLen {
 		return fmt.Errorf("%w: length %d with radix %d, need at least %d", ErrDomainTooSmall, n, c.radix, c.domainMinLen)
 	}
 	if n < c.minLen || n > c.maxLen {
 		return fmt.Errorf("%w: length %d not in %d..%d", ErrInvalidLength, n, c.minLen, c.maxLen)
 	}
-	if len(tweak) > c.maxTweakLen {
-		return fmt.Errorf("%w: %d bytes, max %d", ErrTweakTooLong, len(tweak), c.maxTweakLen)
+	if t > c.maxTweakLen {
+		return fmt.Errorf("%w: %d bytes, max %d", ErrTweakTooLong, t, c.maxTweakLen)
 	}
 	return nil
 }
@@ -267,7 +295,7 @@ func (c *Cipher) checkNumerals(x []uint16, tweak []byte) error {
 	if c == nil || c.block == nil {
 		return ErrUninitialized
 	}
-	if err := c.checkParams(len(x), tweak); err != nil {
+	if err := c.checkParams(len(x), len(tweak)); err != nil {
 		return err
 	}
 	for i, v := range x {
@@ -296,23 +324,20 @@ func (c *Cipher) crypt(x []uint16, tweak []byte, encrypt bool) []uint16 {
 		modU = new(big.Int).Exp(c.bigRadix, big.NewInt(int64(u)), nil)
 	}
 
-	// 3. b = ceil(BITLEN(radix^v - 1) / 8); 4. d = 4*ceil(b/4) + 4.
-	b, d := byteLengths(modV)
+	// 3. b; 4. d; and the layout of Q = T || [0]^pad || [i]^1 || [NUM]^b.
+	l := layoutFor(t, bitLen(modV))
+	d := l.d
 
 	// 5. P.
 	p := buildP(c.radix, u, n, t)
 
-	// PRF(P || Q) is CBC-MAC with a zero IV (Algorithm 4). In
-	// Q = T || [0]^pad || [i]^1 || [NUM_radix(B)]^b the prefix T || [0]^pad is
-	// the same in every round, so its whole blocks (after P) are MACed once.
+	// PRF(P || Q) is CBC-MAC with a zero IV (Algorithm 4). The part of Q
+	// before [i]^1, T || [0]^pad, is the same in every round, so its whole
+	// blocks (after P) are MACed once.
 	var state [aes.BlockSize]byte
 	c.block.Encrypt(state[:], p[:])
-
-	pad := ((-(t + b + 1))%16 + 16) % 16 // (-t-b-1) mod 16, non-negative
-	constLen := t + pad                  // len(T || [0]^pad)
-	fullConst := constLen / 16 * 16
 	var blk [aes.BlockSize]byte
-	for off := 0; off < fullConst; off += aes.BlockSize {
+	for off := 0; off < l.prefix; off += aes.BlockSize {
 		blk = [aes.BlockSize]byte{}
 		if off < t {
 			copy(blk[:], tweak[off:min(off+aes.BlockSize, t)])
@@ -323,14 +348,14 @@ func (c *Cipher) crypt(x []uint16, tweak []byte, encrypt bool) []uint16 {
 
 	// tail = rest of T || [0]^pad, then [i]^1 || [NUM_radix(B)]^b. Its length
 	// is a multiple of 16 because len(Q) = t + pad + 1 + b is.
-	tail := make([]byte, constLen-fullConst+1+b)
-	if fullConst < t {
-		copy(tail, tweak[fullConst:])
+	tail := make([]byte, l.tail)
+	if l.prefix < t {
+		copy(tail, tweak[l.prefix:])
 	}
-	iPos := constLen - fullConst
+	iPos := l.tail - 1 - l.b
 	qNum := tail[iPos+1:] // the [NUM_radix(.)]^b field of Q: exactly b bytes
 
-	s := make([]byte, (d+15)/16*16)
+	s := make([]byte, l.sLen)
 
 	// 2. A = X[1..u]; B = X[u+1..n].
 	numA := c.num(x[:u])

@@ -22,8 +22,7 @@ func bytesNeeded(radix, v int) int {
 }
 
 func bOnly(radixV *big.Int) int {
-	b, _ := byteLengths(radixV)
-	return b
+	return layoutFor(0, bitLen(radixV)).b
 }
 
 func TestByteLengthsKnown(t *testing.T) {
@@ -50,9 +49,9 @@ func TestByteLengthsKnown(t *testing.T) {
 	}
 }
 
-// TestByteLengthsExhaustive compares b from byteLengths with the independent definition
-// for every radix power of two (where rounding errors bite) and a spread of
-// other radixes, over a wide range of v.
+// TestByteLengthsExhaustive compares b from layoutFor with the independent
+// definition for every radix power of two (where rounding errors bite) and a
+// spread of other radixes, over a wide range of v.
 func TestByteLengthsExhaustive(t *testing.T) {
 	radixes := []int{3, 5, 6, 7, 9, 10, 11, 26, 36, 62, 64, 94, 95, 100, 255, 257, 1000, 4095, 4097, 65535}
 	for k := 1; k <= 16; k++ {
@@ -217,7 +216,8 @@ func TestByteLengthsRadix65536(t *testing.T) {
 		{29, 30, 36, 3},
 	} {
 		v := tc.n - tc.n/2
-		b, d := byteLengths(pow(MaxRadix, v))
+		l := layoutFor(0, bitLen(pow(MaxRadix, v)))
+		b, d := l.b, l.d
 		if b != tc.b || d != tc.d || (d+15)/16 != tc.blocks {
 			t.Errorf("radix 65536, n %d: b = %d, d = %d (%d blocks); want %d, %d (%d)", tc.n, b, d, (d+15)/16, tc.b, tc.d, tc.blocks)
 		}

@@ -234,8 +234,8 @@ func TestTweakBounds(t *testing.T) {
 	// Every tweak length 0..100 (so every padding length) with the default
 	// limit, and a tweak much longer than any block-sized buffer.
 	c := mustNew(t, key, mustRadix(t, 36))
-	if c.MaxTweakLength() < 1<<31-1 {
-		t.Errorf("default MaxTweakLength() = %d", c.MaxTweakLength())
+	if _, maxT := defaultLimits(); int64(c.MaxTweakLength()) != maxT {
+		t.Errorf("default MaxTweakLength() = %d, want %d", c.MaxTweakLength(), maxT)
 	}
 	for tl := 0; tl <= 100; tl++ {
 		checkAgainstRef(t, c, key, r.numerals(1+tl%40+4, 36), r.bytes(tl))
@@ -308,9 +308,9 @@ func TestLengthOptions(t *testing.T) {
 	if _, err := fixed.Encrypt("4111111111111111", nil); err != nil {
 		t.Error(err)
 	}
-	// The default maximum is the specification's 2^32-1 (clamped to int).
-	if d := mustNew(t, key, ff1.Digits); d.MaxLength() < 1<<31-1 {
-		t.Errorf("default MaxLength() = %d", d.MaxLength())
+	// The default maximum is the specification's 2^32-1 on 64-bit platforms.
+	if maxLen, _ := defaultLimits(); int64(mustNew(t, key, ff1.Digits).MaxLength()) != maxLen {
+		t.Errorf("default MaxLength() = %d, want %d", mustNew(t, key, ff1.Digits).MaxLength(), maxLen)
 	}
 }
 

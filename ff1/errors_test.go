@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"math"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -42,8 +43,8 @@ func TestInvalidSymbols(t *testing.T) {
 		"123456789\xff",      // invalid UTF-8
 		"\xc0\x80" + "12345", // overlong encoding
 		"12345 67890",        // space
-		"1234567 ",           // NBSP
-		"123456�",            // U+FFFD literal
+		"1234567\u00a0",      // NBSP
+		"123456\ufffd",       // U+FFFD literal
 		"123456\x00",         // NUL
 	} {
 		if _, err := digits.Encrypt(s, nil); !errors.Is(err, ff1.ErrInvalidSymbol) {
@@ -140,18 +141,20 @@ func TestInvalidOptions(t *testing.T) {
 		"maxTweak<0": {ff1.WithMaxTweakLength(-1)},
 		"min>max":    {ff1.WithMinLength(10), ff1.WithMaxLength(9)},
 	}
-	if strconv.IntSize == 64 {
-		// FF1 encodes n and t in 4 bytes, so both must be < 2^32. (A
-		// variable shift keeps this compiling where int is 32 bits.)
-		shift := 32
-		tooBig := int(uint64(1) << shift)
-		cases["min>=2^32"] = []ff1.Option{ff1.WithMinLength(tooBig)}
-		cases["max>=2^32"] = []ff1.Option{ff1.WithMaxLength(tooBig)}
-		cases["maxTweak>=2^32"] = []ff1.Option{ff1.WithMaxTweakLength(tooBig)}
-		c := mustNew(t, key, ff1.Digits, ff1.WithMaxLength(tooBig-1), ff1.WithMaxTweakLength(tooBig-1))
-		if c.MaxLength() != tooBig-1 || c.MaxTweakLength() != tooBig-1 {
-			t.Errorf("limits %d/%d, want 2^32-1", c.MaxLength(), c.MaxTweakLength())
-		}
+	// Limits beyond the platform's (2^32-1 on 64-bit; 2^27-1 numerals and
+	// 2^30-1 tweak bytes on 32-bit) are rejected; the limits themselves are
+	// accepted.
+	maxLen64, maxTweak64 := defaultLimits()
+	maxLen, maxTweak := int(maxLen64), int(maxTweak64)
+	cases["min>limit"] = []ff1.Option{ff1.WithMinLength(maxLen + 1)}
+	cases["max>limit"] = []ff1.Option{ff1.WithMaxLength(maxLen + 1)}
+	cases["maxTweak>limit"] = []ff1.Option{ff1.WithMaxTweakLength(maxTweak + 1)}
+	if strconv.IntSize == 32 {
+		cases["maxTweak=2^31-1 on 32-bit"] = []ff1.Option{ff1.WithMaxTweakLength(math.MaxInt32)}
+	}
+	lim := mustNew(t, key, ff1.Digits, ff1.WithMaxLength(maxLen), ff1.WithMaxTweakLength(maxTweak))
+	if lim.MaxLength() != maxLen || lim.MaxTweakLength() != maxTweak {
+		t.Errorf("limits %d/%d, want %d/%d", lim.MaxLength(), lim.MaxTweakLength(), maxLen, maxTweak)
 	}
 	for name, opts := range cases {
 		if _, err := ff1.New(key, ff1.Digits, opts...); !errors.Is(err, ff1.ErrInvalidOption) {
@@ -175,7 +178,7 @@ func TestInvalidAlphabets(t *testing.T) {
 		"duplicate-rune":   "αβγα",
 		"invalid-utf8":     "01\xff23",
 		"surrogate-in-str": "01\xed\xa0\x80", // UTF-8 encoded surrogate: invalid UTF-8
-		"replacement":      "01�",
+		"replacement":      "01\ufffd",
 	} {
 		if _, err := ff1.NewAlphabet(s); !errors.Is(err, ff1.ErrInvalidAlphabet) {
 			t.Errorf("NewAlphabet(%s) error = %v, want ErrInvalidAlphabet", name, err)
@@ -262,6 +265,36 @@ func TestErrorsDoNotLeak(t *testing.T) {
 		}
 		if n := sentinelCount(err); n != 1 {
 			t.Errorf("error %q wraps %d sentinels, want 1", msg, n)
+		}
+	}
+}
+
+// TestOverlongInputRejectedBeforeAllocation checks that an input longer
+// than the configured maximum is rejected before anything proportional to
+// its length is allocated: the length is counted without allocating and
+// checked before the numerals are decoded.
+func TestOverlongInputRejectedBeforeAllocation(t *testing.T) {
+	for name, tc := range map[string]struct {
+		alphabet ff1.Alphabet
+		input    string
+	}{
+		"digits": {ff1.Digits, strings.Repeat("7", 1<<20)},
+		"runes":  {mustAlphabet(t, "日本語のテキスト"), strings.Repeat("語", 1<<18)},
+	} {
+		c := mustNew(t, testKey(16), tc.alphabet, ff1.WithMaxLength(64))
+		const calls = 20
+		var before, after runtime.MemStats
+		runtime.GC()
+		runtime.ReadMemStats(&before)
+		for range calls {
+			if _, err := c.Encrypt(tc.input, nil); !errors.Is(err, ff1.ErrInvalidLength) {
+				t.Fatalf("%s: error %v, want ErrInvalidLength", name, err)
+			}
+		}
+		runtime.ReadMemStats(&after)
+		// Decoding the input would allocate 2 bytes per symbol (0.5-2 MiB).
+		if perCall := (after.TotalAlloc - before.TotalAlloc) / calls; perCall > 16<<10 {
+			t.Errorf("%s: rejecting a %d-byte input allocated %d bytes per call", name, len(tc.input), perCall)
 		}
 	}
 }

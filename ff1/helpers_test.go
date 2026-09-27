@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -157,4 +158,14 @@ func encodeWith(alphabet string, x []uint16) string {
 		sb.WriteRune(syms[d])
 	}
 	return sb.String()
+}
+
+// defaultLimits returns the default (and largest accepted) input and tweak
+// lengths: 2^32-1 for both on 64-bit platforms, 2^27-1 and 2^30-1 on 32-bit
+// ones, where an int cannot hold every size derived from larger values.
+func defaultLimits() (maxLen, maxTweak int64) {
+	if strconv.IntSize == 64 {
+		return 1<<32 - 1, 1<<32 - 1
+	}
+	return 1<<27 - 1, 1<<30 - 1
 }

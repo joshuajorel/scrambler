@@ -73,9 +73,19 @@ slice; the input is not modified.
 ```go
 c, err := ff1.New(key, ff1.Digits,
 	ff1.WithMinLength(8),        // default: smallest n with radix^n >= 10^6
-	ff1.WithMaxLength(19),       // default: 2^32-1
-	ff1.WithMaxTweakLength(64))  // default: 2^32-1 bytes
+	ff1.WithMaxLength(19),       // default: 2^32-1 (2^27-1 on 32-bit platforms)
+	ff1.WithMaxTweakLength(64))  // default: 2^32-1 bytes (2^30-1 on 32-bit)
 ```
+
+**Cap lengths for untrusted input.** The defaults are the largest lengths
+FF1 allows (on 32-bit platforms, the largest for which every internal size
+fits in an `int`), so one call can be asked to process gigabytes, and the
+cost of a call grows faster than linearly with the input length. When
+plaintexts, ciphertexts, or tweaks come from untrusted callers, set
+`WithMaxLength` and `WithMaxTweakLength` to what the data needs — for
+example 19 digits and a 64-byte tweak for card numbers — so oversized
+requests fail fast with `ErrInvalidLength` or `ErrTweakTooLong`. Lengths are
+checked before anything proportional to the input is allocated.
 
 Every error wraps one sentinel, to be tested with `errors.Is`:
 `ErrInvalidKeyLength`, `ErrInvalidRadix`, `ErrInvalidAlphabet`,
@@ -92,8 +102,13 @@ References are to NIST SP 800-38G Rev. 1, second public draft
 - **Confidentiality only — no authentication.** FF1 has no integrity check.
   Decrypting with the wrong key or tweak, or decrypting a tampered ciphertext,
   returns a well-formed plaintext of the right length and alphabet, not an
-  error. If you need to detect tampering or mismatched context, add a MAC or
-  checksum elsewhere (for example in another column).
+  error. To detect tampering or a mismatched context, store a keyed MAC —
+  for example HMAC-SHA-256 under a separate key — computed over the
+  ciphertext *and* its context (the tweak, or the fields it is derived from),
+  for example in another column, and verify it before trusting a decryption.
+  An unkeyed checksum (a CRC, a Luhn check digit, or a plain hash) only
+  catches accidental corruption: anyone who can change the ciphertext can
+  recompute it, so it authenticates nothing.
 - **Deterministic.** The same key, tweak, and plaintext always give the same
   ciphertext, so equal values under the same tweak are visibly equal. This is
   inherent to FPE.
@@ -134,6 +149,58 @@ References are to NIST SP 800-38G Rev. 1, second public draft
   is out of scope.
 - **Validation.** This is not a CAVP/CMVP-validated module.
 
+### Deterministic masking of join keys across databases
+
+A common use of FF1 is to pseudonymize an identifier, such as an account
+number, so that masked copies in different databases, services, or files can
+still be joined on the masked value. That needs every system to turn the same
+value into exactly the same ciphertext, which deliberately inverts the
+per-record tweak advice above:
+
+- **One key and one logical-domain tweak everywhere.** Every system uses the
+  same key (the same KMS entry) and the same constant tweak naming the logical
+  domain and a version, for example `[]byte("account-number:v1")`. Do not put
+  table or column names, record IDs, or other per-location data in the tweak:
+  they make the same account number mask differently in different places and
+  break the joins.
+- **One alphabet with a fixed symbol order.** Use the same alphabet everywhere
+  (for example `ff1.Digits`); a different symbol order is a different
+  permutation.
+- **One representation and normalization policy.** Apply the same canonical
+  form before masking in every system: the same character set and case,
+  separators and whitespace stripped the same way, and the same width or zero
+  padding (`"0042"` and `"42"` are different inputs). Decide up front what
+  happens to values that fail validation, rather than masking them
+  inconsistently.
+- **Masking needs only `Encrypt`.** If no system needs the original values
+  back, never call `Decrypt`, and keep the key where only the masking service
+  can use it: whoever holds the key can reverse every masked value.
+- **Keep golden ciphertexts.** Record a few fixed inputs with their expected
+  masked outputs and check them in each system's tests and after every
+  library upgrade; any change in output silently breaks joins with data masked
+  earlier. This package pins such values for its built-in alphabets in
+  `ff1/golden_test.go`, and changing them would be a breaking change.
+
+The trade-off is intended but real: under one key and tweak, equal values are
+equal everywhere, so anyone who sees masked data can link records across
+datasets and count repeated values, and each value still has only the domain
+size of its format.
+
+```go
+// The same key, alphabet, tweak, and normalization in every service.
+masker, err := ff1.New(key, ff1.Digits, ff1.WithMaxLength(12), ff1.WithMaxTweakLength(32))
+if err != nil { ... }
+var accountTweak = []byte("account-number:v1")
+
+func maskAccount(raw string) (string, error) {
+	acct, err := normalizeAccount(raw) // e.g. strip spaces and dashes, left-pad to 12 digits
+	if err != nil {
+		return "", err
+	}
+	return masker.Encrypt(acct, accountTweak)
+}
+```
+
 ## Testing and provenance
 
 `go test -race ./...` runs every suite below. Test vectors come from
@@ -150,14 +217,17 @@ quoted from published sources.
 | Differential (`TestDifferential`) | 846 from the Rust `fpe` crate 0.6.1 (radix 2..65536), 634 from Bouncy Castle 1.86 (radix ≤ 65535) | [tools/differential](tools/differential/README.md), deterministic seeds |
 | Reference cross-check | boundary, parity, tweak, and fuzz inputs | `reference_test.go`: a literal transcription of the spec |
 | Full permutation | all 10^6 inputs of radix 10, n = 6 | `permutation_test.go` |
+| Golden outputs | 16 fixed inputs over every built-in alphabet, a Unicode alphabet, and radix 65536; changing them is a breaking change | `golden_test.go`, cross-checked against the reference |
+| Length arithmetic | the largest accepted n and t for 32- and 64-bit ints, without allocating them | `limits_test.go`; CI also runs the whole suite as a 32-bit (`GOARCH=386`) program |
 | Fuzzing | `FuzzRoundTrip`, `FuzzNoPanic` | `fuzz_test.go` |
 
 How the Wycheproof cases resolve: 49,102 valid cases match; 138 cases that
 are valid under the 2016 rule but have `radix^n < 10^6` are rejected with
-`ErrDomainTooSmall` by design; all 7,819 invalid cases are rejected (110 bad
+`ErrDomainTooSmall` by design; all 8,006 invalid cases are rejected (110 bad
 key sizes, 132 short messages, 5,577 out-of-range digits or symbols, and
 2,187 digits such as −1 or 65536 that cannot be represented in the `[]uint16`
-numeral API at all).
+numeral API at all). `TestREADMECounts` checks that every count quoted here
+matches what the tests assert.
 
 **Bouncy Castle and radix 65536.** Bouncy Castle's `SP80038G.calculateP_FF1`
 hardcodes `P[3] = 0`, so it encodes radix 65536 as `00 00 00` instead of

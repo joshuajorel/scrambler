@@ -1,7 +1,7 @@
 # Differential vector generators
 
 Two independent FF1 implementations compute ciphertexts for the same kinds
-of inputs; `TestDifferential` (`ff1/vectors_test.go`) checks that this
+of inputs; `TestDifferential` (`ff1/differential_test.go`) checks that this
 package produces exactly the same results in both directions.
 
 | Output | Generator | Library (pinned) | Radix | Vectors |

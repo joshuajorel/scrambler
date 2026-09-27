@@ -2,6 +2,7 @@ package ff1_test
 
 import (
 	"runtime"
+	"slices"
 	"sync"
 	"testing"
 
@@ -28,8 +29,8 @@ func TestFullPermutationRadix10Len6(t *testing.T) {
 					x[i] = uint16(rest % 10)
 				}
 				ct, err := c.EncryptNumerals(x, tweak)
-				if err != nil {
-					t.Errorf("EncryptNumerals(%06d): %v", v, err)
+				if err != nil || len(ct) != n {
+					t.Errorf("EncryptNumerals(%06d) = %v, %v; want %d numerals", v, ct, err, n)
 					return
 				}
 				y := 0
@@ -38,15 +39,9 @@ func TestFullPermutationRadix10Len6(t *testing.T) {
 				}
 				perm[v] = int32(y)
 				pt, err := c.DecryptNumerals(ct, tweak)
-				if err != nil {
-					t.Errorf("DecryptNumerals(%06d): %v", y, err)
+				if err != nil || len(pt) != n || !slices.Equal(pt, x) {
+					t.Errorf("DecryptNumerals(Encrypt(%06d)) = %v, %v; want %v", v, pt, err, x)
 					return
-				}
-				for i := range pt {
-					if pt[i] != x[i] {
-						t.Errorf("Decrypt(Encrypt(%06d)) = %v", v, pt)
-						return
-					}
 				}
 			}
 		})

@@ -319,8 +319,8 @@ func wycheproofSHA256(t *testing.T) map[string]string {
 	return sums
 }
 
-// TestWycheproofSanity pins the radix-65536 case quoted in the review
-// (tcId 7) independently of the file runner.
+// TestWycheproofSanity pins Wycheproof's radix-65536 tcId 7 independently of
+// the file runner.
 func TestWycheproofSanity(t *testing.T) {
 	c := mustNew(t, mustHex(t, "ad65778960d778c614e2673dee073acb"), mustRadix(t, 65536))
 	tweak := mustHex(t, "4505f45a8fa30b90")

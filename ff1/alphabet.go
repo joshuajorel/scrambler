@@ -219,7 +219,10 @@ func (a *alphabet) symbolCount(s string) int {
 	return utf8.RuneCountInString(s)
 }
 
-// decode maps s to numerals. n must equal a.symbolCount(s).
+// decode maps s to numerals. n must equal a.symbolCount(s), and the caller
+// must already have checked n against the cipher's length limits
+// (Cipher.checkParams), so the allocation below is bounded by the
+// configured maximum length however long s is.
 func (a *alphabet) decode(s string, n int) ([]uint16, error) {
 	out := make([]uint16, n)
 	if a.kind == kindBytes {
