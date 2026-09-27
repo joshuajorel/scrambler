@@ -1,6 +1,6 @@
 // Package mask provides deterministic, fixed-width FF1 masking by logical
-// domain. Equal canonical inputs under one policy intentionally mask alike.
-// Masking is pseudonymization, not anonymization.
+// domain. Equal canonical inputs under one policy and tweak context
+// intentionally mask alike. Masking is pseudonymization, not anonymization.
 package mask
 
 import (
@@ -94,8 +94,8 @@ type KeyRef struct {
 }
 
 // Context contains logical tweak context. JoinDomain requires the zero
-// Context. TenantDomain requires TenantID. Record requires RecordID and may
-// additionally use TenantID.
+// Context. TenantDomain requires TenantID and no RecordID. Record requires
+// RecordID and may additionally use TenantID.
 type Context struct {
 	TenantID string
 	RecordID string
