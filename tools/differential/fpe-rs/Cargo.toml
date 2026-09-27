@@ -1,0 +1,17 @@
+[package]
+name = "ff1-differential-fpe-rs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Generates FF1 differential test vectors for scrambler with the fpe crate"
+license = "Apache-2.0"
+
+# Direct dependencies are pinned exactly; Cargo.lock pins the rest.
+[dependencies]
+fpe = "=0.6.1"
+aes = "=0.8.4"
+num-bigint = { version = "=0.4.8", default-features = false }
+libm = "=0.2.16"
+
+[profile.release]
+debug = false
