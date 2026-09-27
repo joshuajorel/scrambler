@@ -17,10 +17,22 @@ func Example() {
 		panic(err)
 	}
 	var bindings mask.Registry
-	parent, _ := bindings.Bind("accounts.id", policy)
-	foreignKey, _ := bindings.Bind("orders.account_id", policy)
-	a, _ := parent.Mask("000123456789", mask.Context{})
-	b, _ := foreignKey.Mask("000123456789", mask.Context{})
+	parent, err := bindings.Bind("accounts.id", policy)
+	if err != nil {
+		panic(err)
+	}
+	foreignKey, err := bindings.Bind("orders.account_id", policy)
+	if err != nil {
+		panic(err)
+	}
+	a, err := parent.Mask("000123456789", mask.Context{})
+	if err != nil {
+		panic(err)
+	}
+	b, err := foreignKey.Mask("000123456789", mask.Context{})
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(a == b)
 	// Output: true
 }

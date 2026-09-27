@@ -12,9 +12,9 @@ type Registry struct {
 	locations map[string]*Binding
 }
 
-// Binding is an immutable location handle. Its name never enters the tweak.
+// Binding is an immutable location handle. The location name never enters
+// the tweak.
 type Binding struct {
-	name   string
 	policy *Policy
 }
 
@@ -33,19 +33,18 @@ func (r *Registry) Bind(location string, p *Policy) (*Binding, error) {
 		return nil, ErrDivergentPolicy
 	}
 	if prior, ok := r.locations[location]; ok {
-		if prior.policy.fingerprint != p.fingerprint ||
-			prior.policy.domainID != p.domainID || prior.policy.version != p.version {
+		if prior.policy.fingerprint != p.fingerprint {
 			return nil, ErrDivergentPolicy
 		}
 		return prior, nil
 	}
-	b := &Binding{name: location, policy: p}
+	b := &Binding{policy: p}
 	r.domains[p.domainID] = p.fingerprint
 	r.locations[location] = b
 	return b, nil
 }
 
-// Mask masks through the bound policy. The binding name never affects output.
+// Mask masks through the bound policy. The location name never affects output.
 func (b *Binding) Mask(raw string, ctx Context) (string, error) {
 	if b == nil || b.policy == nil {
 		return "", ErrInvalidSpec

@@ -181,8 +181,11 @@ Import `github.com/joshuajorel/scrambler/mask` for this example. A policy's
 `Fingerprint` is a stable digest of its declared rules and key reference; it
 does not contain key bytes. The caller must resolve the same versioned key
 reference to the same key in every process. Rotate a key with a new policy
-version; because a registry accepts one version per domain ID, every location
-of the domain moves to the new version together. The package exposes masking only; it has no unmask operation.
+version. A registry accepts one version per domain ID, so every location bound
+in that registry moves to the new version together. Each process has its own
+registry and separate processes are not coordinated by it, so deploy a new
+version to every process that masks the domain together. The package exposes
+masking only; it has no unmask operation.
 
 `JoinDomain` is for business keys that must join across locations. Use
 `TenantDomain` only when cross-tenant joins are deliberately excluded, and
@@ -212,6 +215,11 @@ masked copy as public data.
 The package currently handles fixed-width strings only. Structured formats
 such as separators, prefixes, and check digits need separate policies and are
 not supported by this stage.
+
+The rest of this section describes a manual recipe that calls `ff1` directly.
+Its tweak encoding differs from the `mask` package's, so the two produce
+different outputs for the same value and cannot be mixed for one domain: every
+location of a domain must use the same approach.
 
 A common use of FF1 is to pseudonymize an identifier, such as an account
 number, so that masked copies in different databases, services, or files can
