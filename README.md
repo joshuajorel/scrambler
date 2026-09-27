@@ -239,11 +239,12 @@ It is therefore used as an oracle only up to radix 65535, and
 `TestRadix65536Regression` pins the correct value.
 
 Other checks cover the parameter boundaries (radix 1 and 65537 rejected; 2, 3,
-10, 64, 255–257, 999–1025, 32767–32769, 65535, 65536 accepted; exact minimum
-lengths; odd and even n; radix 2 with v = 232, where b must be 29; radix 65536
-n = 12 → 13, where S grows to two blocks; tweaks of 0, maximum, and maximum+1
-bytes; all-zero and all-maximum inputs), every error path, determinism, key
-and tweak sensitivity, and concurrent use under the race detector.
+10, 36, 64, 255–257, 999, 1000, 1023–1025, 32767–32769, 65535, 65536
+accepted; exact minimum lengths; odd and even n; radix 2 with v = 232, where b
+must be 29; radix 65536 n = 12 → 13, where S grows to two blocks; tweaks of 0,
+maximum, and maximum+1 bytes; all-zero and all-maximum inputs), every error
+path, determinism, key and tweak sensitivity, and concurrent use under the race
+detector.
 
 ```sh
 go test -race ./...

@@ -169,6 +169,7 @@ func TestWycheproof(t *testing.T) {
 				t.Fatalf("unknown schema %q", f.Schema)
 			}
 			var got wycheproofTally
+			ran := 0
 			for _, g := range f.TestGroups {
 				var alpha ff1.Alphabet
 				if list {
@@ -182,15 +183,19 @@ func TestWycheproof(t *testing.T) {
 				for _, tc := range g.Tests {
 					got.total++
 					t.Run(fmt.Sprintf("tc%d", tc.TcID), func(t *testing.T) {
+						ran++
 						runWycheproofCase(t, &got, alpha, list, tc.Key, tc.Tweak, tc.Msg, tc.CT, tc.Result, tc.Flags)
 					})
 				}
 			}
 			if got.total != f.NumberOfTests {
-				t.Errorf("ran %d cases, file declares %d", got.total, f.NumberOfTests)
+				t.Errorf("vector file has %d cases, header declares %d", got.total, f.NumberOfTests)
 			}
-			if want := wycheproofCounts[name]; got != want {
-				t.Errorf("tally = %+v\n want   %+v", got, want)
+			// The tally is complete only when -run selected every case.
+			if ran == got.total {
+				if want := wycheproofCounts[name]; got != want {
+					t.Errorf("tally = %+v\n want   %+v", got, want)
+				}
 			}
 			t.Logf("%s: %d cases: %d valid matched, %d valid rejected by the 10^6 rule, %d invalid rejected "+
 				"(%d key size, %d message size, %d bad digit/symbol, %d digit outside uint16)",
