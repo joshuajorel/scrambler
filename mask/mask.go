@@ -73,8 +73,9 @@ type Canonicalizer struct {
 	Apply func(string) (string, error)
 }
 
-// Spec is a fixed-width, string-alphabet policy. The alphabet's rune order
-// defines numeral order. No key material is stored in a Spec.
+// Spec is a fixed-width policy. Plain policies use Alphabet and Width;
+// structured policies use Layout. Alphabet rune order defines numeral order.
+// No key material is stored in a Spec.
 type Spec struct {
 	DomainID      string
 	Version       string
@@ -84,6 +85,7 @@ type Spec struct {
 	Empty         EmptyRule
 	Aliases       AliasRule
 	Scope         Scope
+	Layout        []Part // Optional structured layout; Alphabet and Width must be unset.
 }
 
 // KeyRef names a caller-managed key and its version. Rotate a key by making
@@ -111,6 +113,7 @@ type Policy struct {
 	canonicalize      func(string) (string, error)
 	cipher            *ff1.Cipher
 	fingerprint       string
+	layout            *compiledLayout
 }
 
 // Compile validates a policy and expands a caller-supplied AES key once.
@@ -120,9 +123,14 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 		!validLabel(ref.ID, maxDomainID) || !validLabel(ref.Version, maxVersion) {
 		return nil, fmt.Errorf("%w: domain, policy version, and key reference need bounded nonempty UTF-8 labels", ErrInvalidSpec)
 	}
-	if spec.Width < 2 || spec.Width > maxWidth || spec.Scope > Record ||
-		spec.Empty > PreserveEmpty || spec.Aliases > AllowAliases {
+	if spec.Scope > Record || spec.Empty > PreserveEmpty || spec.Aliases > AllowAliases {
 		return nil, fmt.Errorf("%w: unsupported width or rule", ErrInvalidSpec)
+	}
+	if spec.Layout != nil && len(spec.Layout) == 0 {
+		return nil, fmt.Errorf("%w: empty structured layout", ErrInvalidSpec)
+	}
+	if spec.Layout == nil && (spec.Width < 2 || spec.Width > maxWidth) {
+		return nil, fmt.Errorf("%w: unsupported width", ErrInvalidSpec)
 	}
 	canon := spec.Canonicalizer.Apply
 	canonID := spec.Canonicalizer.ID
@@ -131,10 +139,6 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 		canon = func(s string) (string, error) { return s, nil }
 	} else if canon == nil || !validLabel(canonID, maxDomainID) || canonID == "identity/v1" {
 		return nil, fmt.Errorf("%w: custom canonicalizer requires a distinct stable ID and function", ErrInvalidSpec)
-	}
-	alpha, err := ff1.NewAlphabet(spec.Alphabet)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidSpec, err)
 	}
 	// The scope's maximum encoded size is an FF1 bound, including field
 	// lengths and the format marker. Actual context labels are checked below.
@@ -145,14 +149,33 @@ func Compile(spec Spec, ref KeyRef, key []byte) (*Policy, error) {
 	if spec.Scope == Record {
 		maxTweak += 4 + maxContext
 	}
-	c, err := ff1.New(key, alpha, ff1.WithMinLength(spec.Width),
-		ff1.WithMaxLength(spec.Width), ff1.WithMaxTweakLength(maxTweak))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidSpec, err)
+	var c *ff1.Cipher
+	var layout *compiledLayout
+	var err error
+	width := spec.Width
+	if spec.Layout != nil {
+		if spec.Width != 0 || spec.Alphabet != "" {
+			return nil, fmt.Errorf("%w: structured policies must leave Width and Alphabet unset", ErrInvalidSpec)
+		}
+		layout, c, err = compileLayout(spec.Layout, key, maxTweak)
+		if err != nil {
+			return nil, err
+		}
+		width = layout.width
+	} else {
+		alpha, alphaErr := ff1.NewAlphabet(spec.Alphabet)
+		if alphaErr != nil {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidSpec, alphaErr)
+		}
+		c, err = ff1.New(key, alpha, ff1.WithMinLength(spec.Width),
+			ff1.WithMaxLength(spec.Width), ff1.WithMaxTweakLength(maxTweak))
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidSpec, err)
+		}
 	}
 	p := &Policy{domainID: spec.DomainID, version: spec.Version, scope: spec.Scope,
-		empty: spec.Empty, aliases: spec.Aliases, width: spec.Width,
-		canonicalize: canon, cipher: c}
+		empty: spec.Empty, aliases: spec.Aliases, width: width,
+		canonicalize: canon, cipher: c, layout: layout}
 	p.fingerprint = policyFingerprint(spec, ref, canonID)
 	return p, nil
 }
@@ -194,6 +217,9 @@ func (p *Policy) Mask(raw string, ctx Context) (string, error) {
 	if len(canonical) > p.width*utf8.UTFMax || !utf8.ValidString(canonical) ||
 		utf8.RuneCountInString(canonical) != p.width {
 		return "", ErrInvalidInput
+	}
+	if p.layout != nil {
+		return p.maskLayout(canonical, tweak)
 	}
 	masked, err := p.cipher.Encrypt(canonical, tweak)
 	if err != nil {
@@ -258,6 +284,18 @@ func policyFingerprint(spec Spec, ref KeyRef, canonID string) string {
 	var n [4]byte
 	binary.BigEndian.PutUint32(n[:], uint32(spec.Width))
 	b = append(b, n[:]...)
+	if len(spec.Layout) != 0 {
+		b = append(b, []byte("layout/v1\x00")...)
+		binary.BigEndian.PutUint32(n[:], uint32(len(spec.Layout)))
+		b = append(b, n[:]...)
+		for _, part := range spec.Layout {
+			b = append(b, byte(part.Kind))
+			b = appendField(b, part.Literal)
+			b = appendField(b, part.Alphabet)
+			binary.BigEndian.PutUint32(n[:], uint32(part.Width))
+			b = append(b, n[:]...)
+		}
+	}
 	sum := sha256.Sum256(b)
 	return hex.EncodeToString(sum[:])
 }

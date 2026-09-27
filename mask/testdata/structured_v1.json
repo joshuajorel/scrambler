@@ -1,0 +1,22 @@
+{
+  "card": {
+    "input": "4111111111111111",
+    "output": "4111114797154744",
+    "fingerprint": "fd938f5b148752449554762edb7eba7a03bf6b41a5828ab0ed0e8dbd0dd04b50"
+  },
+  "customer": {
+    "input": "C000123",
+    "output": "C554214",
+    "fingerprint": "add59008519bd16085669eb241df5dc8ad61ba1b18d1a19bf6ab7202737ed93b"
+  },
+  "email": {
+    "input": "ava.nguyen.000001@example.test",
+    "output": "wfc.fpsrhf.689351@example.test",
+    "fingerprint": "699c9347896616415ef8f12e5c8258a5328ab85cfe9dd4426a79f878351de4f1"
+  },
+  "phone": {
+    "input": "+1-202-555-0001",
+    "output": "+1-375-780-9321",
+    "fingerprint": "1f9074b57bf43a966a91c3511efc37c85ee5cee46c19aabbeccee476d81bce7a"
+  }
+}
