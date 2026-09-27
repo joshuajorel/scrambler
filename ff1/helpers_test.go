@@ -2,8 +2,10 @@ package ff1_test
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"math/big"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -73,6 +75,17 @@ func mustAlphabet(t testing.TB, s string) ff1.Alphabet {
 		t.Fatalf("NewAlphabet(%q): %v", s, err)
 	}
 	return a
+}
+
+func loadJSON(t testing.TB, path string, v any) {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(data, v); err != nil {
+		t.Fatalf("%s: %v", path, err)
+	}
 }
 
 // toNumerals maps each rune of s to its index in alphabet.
